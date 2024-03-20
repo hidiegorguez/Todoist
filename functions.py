@@ -46,13 +46,16 @@ def getTasksDicts(all_tasks, projects_dict_id, projects_dict_name):
         task_dict_id[task['id']]=[task['content'],projects_dict_id[task['project_id']]]
     return task_dict_id, task_dict_name
 
-def getSections():
+def getSections(project_id = None):
     data = {
         "sync_token": "*",
         "resource_types": json.dumps(['sections'])
     }
     response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
     all_sections = response.json()["sections"]
+    if project_id != None:
+        # print("he entrado")
+        return [section for section in all_sections if section.get('project_id') == project_id]
     return all_sections
 
 def getSectionsDicts(all_sections):
@@ -86,11 +89,4 @@ def getDurationLabel(n):
     return 'Long'
 
 def priorityInversal(n):
-    if n==1:
-        return 4
-    if n==3:
-        return 2
-    if n==2:
-        return 3
-    if n==4:
-        return 1
+    return 5 - n
