@@ -70,8 +70,19 @@ def getTask(id):
     task = api.get_task(task_id = id)
     return task
 
+def completeTask(id):
+    try:
+        api.close_task(id)
+        print(f'La tarea {id} se completó')
+    except:
+        print(f'No ha sido posible completar la tarea {id}')
+        
 def uncompleteTask(id):
-    return api.reopen_task(id)
+    try:
+        api.reopen_task(id)
+        print(f'La tarea {id} está activa')
+    except:
+        print(f'No ha sido posible descompletar la tarea {id}')
 
 def getLabelsWithoutDuration(task_id):
     task = getTask(task_id)
