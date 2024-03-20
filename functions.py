@@ -70,6 +70,9 @@ def getTask(id):
     task = api.get_task(task_id = id)
     return task
 
+def uncompleteTask(id):
+    return api.reopen_task(id)
+
 def getLabelsWithoutDuration(task_id):
     task = getTask(task_id)
     list = task.labels
