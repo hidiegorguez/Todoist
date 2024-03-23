@@ -1,4 +1,5 @@
 
 __pycache__
-credentials.py
+credentials.json
 .venvdiego
+.env
