@@ -116,46 +116,16 @@ def getLabelsWithoutDuration(task_id):
 def getDurationLabel(n):
     if n<5:
         return 'Short'
-    if n<60:
+    if n<61:
         return 'Med'
     return 'Long'
 
 def priorityInversal(n):
     return 5 - n
 
-# def sendEmail(to, subject, body):
-#     provider_smtp = 'smtp-relay.gmail.com' 
-#     puerto = 587 
-#     contraseña = os.getenv("password")
-#     email = os.getenv("email")
-#     # Crear el mensaje
-#     msg = MIMEMultipart()
-#     msg['From'] = email
-#     msg['To'] = to
-#     msg['Subject'] = subject
-    
-
-#     # Agregar el mensaje al cuerpo del correo
-#     msg.attach(MIMEText(body, 'plain'))
-
-#     # Iniciar conexión con el servidor SMTP
-#     try:
-#         provider = smtplib.SMTP(provider_smtp, puerto)
-#         provider.starttls()
-#         # Iniciar sesión en el servidor SMTP
-#         provider.login(email, contraseña)
-#         # Enviar correo electrónico
-#         provider.sendmail(to, to, msg.as_string())
-#         print("Email sent correctly")
-#     except Exception as e:
-#         print(f"Error: {e}")
-#     finally:
-#         # Cerrar conexión con el servidor SMTP
-#         provider.quit()
 
 # Si modificas estos SCOPES, elimina el archivo token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-
 
 def gmail_authenticate():
     creds = None
@@ -184,7 +154,6 @@ def sendEmail(to, subject, body):
     msg = MIMEText(body, 'plain')
     message.attach(msg)
 
-    # codificar el mensaje en base64
     raw = base64.urlsafe_b64encode(message.as_bytes())
     raw = raw.decode()
     body = {'raw': raw}
