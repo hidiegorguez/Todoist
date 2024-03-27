@@ -4,3 +4,4 @@ credentials.json
 .venvdiego
 .env
 token.pickle
+src/token.pickle
