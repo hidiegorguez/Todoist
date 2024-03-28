@@ -4,4 +4,11 @@ credentials.json
 .venvdiego
 .env
 token.pickle
-src/token.pickle
+maindiego.py
+
+.python_packages
+host.json
+local.settings.json
+.venv
+MainDiegoTimeTrigger
+.vscode
