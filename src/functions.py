@@ -171,3 +171,17 @@ def sendEmail(to, subject, body):
         print("Email sent correctly")
     except Exception as e:
         print(f"Error: {e}")
+
+def coeficiente_jaccard(cadena1, cadena2):
+    set_cadena1 = set(cadena1.split())
+    set_cadena2 = set(cadena2.split())
+
+    interseccion = len(set_cadena1.intersection(set_cadena2))
+    union = len(set_cadena1.union(set_cadena2))
+
+    coeficiente = interseccion / union
+    return coeficiente
+
+def son_similares(cadena1, cadena2, umbral=0.5):
+    coeficiente = coeficiente_jaccard(cadena1, cadena2)
+    return coeficiente >= umbral
