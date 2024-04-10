@@ -1,5 +1,6 @@
 import json
 import requests
+from datetime import datetime, timedelta
 from todoist_api_python.api import TodoistAPI
 import smtplib
 from email.mime.text import MIMEText
@@ -20,7 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_token = os.getenv("API_TOKEN")
+api_token = os.getenv("API_TOKEN_DIEGO")
 api = TodoistAPI(api_token)
 
 headers = {
@@ -122,6 +123,12 @@ def getDurationLabel(n):
 
 def priorityInversal(n):
     return 5 - n
+
+def getNextMonday():
+    _today = datetime.now()
+    days_to_monday = (0 - _today.weekday()) % 7 
+    closer_monday = _today + timedelta(days=days_to_monday)
+    return closer_monday
 
 
 # Si modificas estos SCOPES, elimina el archivo token.json.
