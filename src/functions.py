@@ -1,6 +1,7 @@
 import json
 import requests
 from datetime import datetime, timedelta
+import uuid
 from todoist_api_python.api import TodoistAPI
 import smtplib
 from email.mime.text import MIMEText
@@ -104,6 +105,27 @@ def uncompleteTask(id):
         print(f'La tarea {id} está activa')
     except:
         print(f'No ha sido posible descompletar la tarea {id}')
+
+def moveTask(task_id, project_id, section_id = None, parent_id = None):
+    try:
+        headers = {
+            "Authorization": f"Bearer {api_token}"
+        }
+        data = {
+            "commands": [{
+                "type": "item_move",
+                "uuid": str(uuid.uuid4()),  # Genera un identificador único
+                "args": {
+                    "id": task_id,
+                    "project_id": project_id
+                }
+            }]
+        }
+        response = requests.post("https://api.todoist.com/sync/v9/sync", json=data, headers=headers)
+        return response.json()
+    except Exception as error:
+        print('errrors')
+        return error
 
 def getLabelsWithoutDuration(task_id):
     task = getTask(task_id)
