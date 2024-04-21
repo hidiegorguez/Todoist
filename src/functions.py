@@ -154,11 +154,10 @@ def getNextMonday():
     closer_monday = _today + timedelta(days=days_to_monday)
     return closer_monday
 
-
 # Si modificas estos SCOPES, elimina el archivo token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-def gmail_authenticate():
+def gmailAuthenticate():
     creds = None
     # El archivo token.pickle almacena los tokens de acceso del usuario,
     # y se crea automáticamente cuando el flujo de autorización se completa por primera vez.
@@ -178,7 +177,7 @@ def gmail_authenticate():
     return build('gmail', 'v1', credentials=creds)
 
 def sendEmail(to, subject, body):
-    service = gmail_authenticate()
+    service = gmailAuthenticate()
     message = MIMEMultipart()
     message['To'] = to
     message['Subject'] = subject
@@ -196,7 +195,7 @@ def sendEmail(to, subject, body):
     except Exception as e:
         print(f"Error: {e}")
 
-def coeficiente_jaccard(cadena1, cadena2):
+def jaccardCoef(cadena1, cadena2):
     set_cadena1 = set(cadena1.split())
     set_cadena2 = set(cadena2.split())
 
@@ -206,7 +205,7 @@ def coeficiente_jaccard(cadena1, cadena2):
     coeficiente = interseccion / union
     return coeficiente
 
-def son_similares(cadena1, cadena2, umbral=0.5):
-    coeficiente = coeficiente_jaccard(cadena1, cadena2)
+def areSimilar(cadena1, cadena2, umbral=0.5):
+    coeficiente = jaccardCoef(cadena1, cadena2)
     if coeficiente >= umbral:
-        return f'{cadena1} and {cadena2}'
+        return f'{cadena1} & {cadena2}'
