@@ -208,4 +208,5 @@ def coeficiente_jaccard(cadena1, cadena2):
 
 def son_similares(cadena1, cadena2, umbral=0.5):
     coeficiente = coeficiente_jaccard(cadena1, cadena2)
-    return coeficiente >= umbral
+    if coeficiente >= umbral:
+        return f'{cadena1} and {cadena2}'
