@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 import uuid
 from todoist_api_python.api import TodoistAPI
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 import os
 import base64
@@ -17,6 +15,7 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 import pickle
 
+from email.message import EmailMessage
 
 from dotenv import load_dotenv
 
@@ -154,49 +153,25 @@ def getNextMonday():
     closer_monday = _today + timedelta(days=days_to_monday)
     return closer_monday
 
+def sendEmail(subject, body, to):
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['Subject'] = subject
+    msg['From'] = os.getenv('MAIL')
+    msg['To'] = to
 
-# Si modificas estos SCOPES, elimina el archivo token.json.
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+    server = 'smtp-mail.outlook.com'
+    port = 587
 
-def gmail_authenticate():
-    creds = None
-    # El archivo token.pickle almacena los tokens de acceso del usuario,
-    # y se crea automáticamente cuando el flujo de autorización se completa por primera vez.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
-    # Si no hay credenciales válidas disponibles, haga que el usuario se autentique.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('../credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Guardar las credenciales para la próxima ejecución
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
-    return build('gmail', 'v1', credentials=creds)
+    username = os.getenv('MAIL')
+    password = os.getenv('PASSWORD')
 
-def sendEmail(to, subject, body):
-    service = gmail_authenticate()
-    message = MIMEMultipart()
-    message['To'] = to
-    message['Subject'] = subject
-    msg = MIMEText(body, 'plain')
-    message.attach(msg)
-
-    raw = base64.urlsafe_b64encode(message.as_bytes())
-    raw = raw.decode()
-    body = {'raw': raw}
-    
-    try:
-        message = (service.users().messages().send(userId="me", body=body)
-                   .execute())
-        print("Email sent correctly")
-    except Exception as e:
-        print(f"Error: {e}")
-
-def coeficiente_jaccard(cadena1, cadena2):
+    with smtplib.SMTP(server, port) as smtp:
+        smtp.starttls()
+        smtp.login(username, password)
+        smtp.send_message(msg)
+        
+def jaccardCoef(cadena1, cadena2):
     set_cadena1 = set(cadena1.split())
     set_cadena2 = set(cadena2.split())
 
@@ -206,6 +181,7 @@ def coeficiente_jaccard(cadena1, cadena2):
     coeficiente = interseccion / union
     return coeficiente
 
-def son_similares(cadena1, cadena2, umbral=0.5):
-    coeficiente = coeficiente_jaccard(cadena1, cadena2)
-    return coeficiente >= umbral
+def areSimilar(cadena1, cadena2, umbral=0.5):
+    coeficiente = jaccardCoef(cadena1, cadena2)
+    if coeficiente >= umbral:
+        return f'{cadena1} & {cadena2}'
