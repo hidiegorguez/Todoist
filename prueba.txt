@@ -1,0 +1,1 @@
+https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=198350526396-ioj8lpjqcs7rua65i9ruj8fp9joqhhpf.apps.googleusercontent.com&redirect_uri=http://localhost&scope=https://www.googleapis.com/auth/gmail.send&access_type=offline&include_granted_scopes=true&state=state_parameter_passthrough_value&prompt=consent

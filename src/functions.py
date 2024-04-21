@@ -1,10 +1,9 @@
 import json
 import requests
 from datetime import datetime, timedelta
+import uuid
 from todoist_api_python.api import TodoistAPI
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 import os
 import base64
@@ -16,12 +15,15 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 import pickle
 
+from email.message import EmailMessage
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# api_token = os.getenv("API_TOKEN_TONI")
 api_token = os.getenv("API_TOKEN_DIEGO")
+
 api = TodoistAPI(api_token)
 
 headers = {
@@ -103,6 +105,27 @@ def uncompleteTask(id):
     except:
         print(f'No ha sido posible descompletar la tarea {id}')
 
+def moveTask(task_id, project_id, section_id = None, parent_id = None):
+    try:
+        headers = {
+            "Authorization": f"Bearer {api_token}"
+        }
+        data = {
+            "commands": [{
+                "type": "item_move",
+                "uuid": str(uuid.uuid4()),  # Genera un identificador único
+                "args": {
+                    "id": task_id,
+                    "project_id": project_id
+                }
+            }]
+        }
+        response = requests.post("https://api.todoist.com/sync/v9/sync", json=data, headers=headers)
+        return response.json()
+    except Exception as error:
+        print('errrors')
+        return error
+
 def getLabelsWithoutDuration(task_id):
     task = getTask(task_id)
     list = task.labels
@@ -130,44 +153,35 @@ def getNextMonday():
     closer_monday = _today + timedelta(days=days_to_monday)
     return closer_monday
 
+def sendEmail(subject, body, to):
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['Subject'] = subject
+    msg['From'] = os.getenv('MAIL')
+    msg['To'] = to
 
-# Si modificas estos SCOPES, elimina el archivo token.json.
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+    server = 'smtp-mail.outlook.com'
+    port = 587
 
-def gmail_authenticate():
-    creds = None
-    # El archivo token.pickle almacena los tokens de acceso del usuario,
-    # y se crea automáticamente cuando el flujo de autorización se completa por primera vez.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
-    # Si no hay credenciales válidas disponibles, haga que el usuario se autentique.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('../credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Guardar las credenciales para la próxima ejecución
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
-    return build('gmail', 'v1', credentials=creds)
+    username = os.getenv('MAIL')
+    password = os.getenv('PASSWORD')
 
-def sendEmail(to, subject, body):
-    service = gmail_authenticate()
-    message = MIMEMultipart()
-    message['To'] = to
-    message['Subject'] = subject
-    msg = MIMEText(body, 'plain')
-    message.attach(msg)
+    with smtplib.SMTP(server, port) as smtp:
+        smtp.starttls()
+        smtp.login(username, password)
+        smtp.send_message(msg)
+        
+def jaccardCoef(cadena1, cadena2):
+    set_cadena1 = set(cadena1.split())
+    set_cadena2 = set(cadena2.split())
 
-    raw = base64.urlsafe_b64encode(message.as_bytes())
-    raw = raw.decode()
-    body = {'raw': raw}
-    
-    try:
-        message = (service.users().messages().send(userId="me", body=body)
-                   .execute())
-        print("Email sent correctly")
-    except Exception as e:
-        print(f"Error: {e}")
+    interseccion = len(set_cadena1.intersection(set_cadena2))
+    union = len(set_cadena1.union(set_cadena2))
+
+    coeficiente = interseccion / union
+    return coeficiente
+
+def areSimilar(cadena1, cadena2, umbral=0.5):
+    coeficiente = jaccardCoef(cadena1, cadena2)
+    if coeficiente >= umbral:
+        return f'{cadena1} & {cadena2}'
