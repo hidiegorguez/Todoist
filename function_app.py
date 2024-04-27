@@ -12,7 +12,7 @@ def MainDiegoTimerTrigger(myTimer: func.TimerRequest) -> None:
     mainDiego()
     
     logging.info('Python timer trigger function executed.')
-    
+
 def mainDiego():
         # %% [markdown]
     # <img src="../data/logo.png" width="420px">
@@ -401,7 +401,7 @@ def mainDiego():
     # %%
     to_update = False
     for task in all_tasks:
-        if 'Vacations' in task['labels']:
+        if 'Vacations' in task['labels'] and task['project_id']==projects_dict_name['Calendario']:
             title = task["content"]
             try:
                 task_dict_name[f'Preparar maleta {title}']

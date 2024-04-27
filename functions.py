@@ -6,14 +6,6 @@ from todoist_api_python.api import TodoistAPI
 import smtplib
 
 import os
-import base64
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-import pickle
 
 from email.message import EmailMessage
 
