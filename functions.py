@@ -21,8 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# api_token = os.getenv("API_TOKEN_TONI")
-api_token = os.getenv("API_TOKEN_DIEGO")
+api_token = os.getenv("TODOIST_API_TOKEN")
 
 api = TodoistAPI(api_token)
 
