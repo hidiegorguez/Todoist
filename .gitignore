@@ -10,5 +10,4 @@ maindiego.py
 host.json
 local.settings.json
 .venv
-MainDiegoTimeTrigger
-.vscode
+/MainDiegoTimeTrigger/

@@ -46,7 +46,7 @@ def getTasks():
         "resource_types": json.dumps(['items'])
     }
     response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
-    # print(response.json())
+    print(response.json())
     all_tasks = response.json()["items"]
     return all_tasks
 
