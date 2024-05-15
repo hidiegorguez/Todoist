@@ -4,18 +4,29 @@ from datetime import datetime, timedelta
 import uuid
 from todoist_api_python.api import TodoistAPI
 import smtplib
-
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from io import StringIO
+import pandas as pd
 import os
-
 from email.message import EmailMessage
 
 from dotenv import load_dotenv
-
 load_dotenv()
 
-api_token = os.getenv("TODOIST_API_TOKEN")
+import spacy
+try:
+    nlp = spacy.load("es_core_news_sm")
+except OSError:
+    from spacy.cli import download
+    download("es_core_news_sm")
+    nlp = spacy.load("es_core_news_sm")
 
+api_token = os.getenv("TODOIST_API_TOKEN")
 api = TodoistAPI(api_token)
+
+connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+container_client = blob_service_client.get_container_client('todoistcontainer')
 
 headers = {
     "Content-Type": "application/json",
@@ -176,3 +187,39 @@ def areSimilar(cadena1, cadena2, umbral=0.5):
     coeficiente = jaccardCoef(cadena1, cadena2)
     if coeficiente >= umbral:
         return f'{cadena1} & {cadena2}'
+
+def readCsvFromBlob(blob_name):
+    blob_client = container_client.get_blob_client(blob_name)
+    blob_data = blob_client.download_blob().readall()
+    data = StringIO(blob_data.decode('utf-8'))
+    df = pd.read_csv(data)
+    return df
+
+def uploadCsvToBlob(df, blob_name):
+    blob_client = container_client.get_blob_client(blob_name)
+    output = StringIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+    blob_client.upload_blob(output.getvalue(), overwrite=True)
+    
+def capitalizeProperNounsSpacy(text):
+    doc = nlp(text)
+    result = []
+    capitalize_next = True
+    for token in doc:
+        if token.text.isupper():
+            result.append(token.text)
+        elif capitalize_next and token.is_alpha:
+            result.append(token.text.capitalize())
+            capitalize_next = False
+        elif token.ent_type_ in ['PER', 'LOC', 'ORG', 'MISC', 'PROD', 'EVENT', 'WORK_OF_ART', 'LAW', 'LANGUAGE']:
+            result.append(token.text.capitalize())
+        elif token.text.lower() == "españa":
+            result.append("España")
+        else:
+            result.append(token.text)
+        if token.text in '.!?':
+            capitalize_next = True
+    final_text = ''.join([tok if tok in '.,;:!?()[]{}' else ' ' + tok for tok in result]).strip()
+    return final_text
+
