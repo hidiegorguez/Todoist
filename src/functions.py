@@ -52,6 +52,8 @@ def getProjectsDicts(all_projects):
     return projects_dict_id, projects_dict_name
 
 def getTasks():
+    active_projects = getProjects()
+    active_projects_ids, _ = getProjectsDicts(active_projects)
     data = {
         "sync_token": "*",
         "resource_types": json.dumps(['items'])
@@ -59,7 +61,8 @@ def getTasks():
     response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
     # print(response.json())
     all_tasks = response.json()["items"]
-    return all_tasks
+    active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
+    return active_tasks
 
 def getTasksDicts(all_tasks, projects_dict_id, projects_dict_name):
     task_dict_id={}
