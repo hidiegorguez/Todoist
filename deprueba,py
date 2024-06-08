@@ -1,0 +1,685 @@
+import logging
+import azure.functions as func
+# # import main as main
+# # ------------main
+# import logging
+# import azure.functions as func
+
+# # import functions as fun
+# # ------------functions
+import json
+import requests
+from datetime import datetime, timedelta
+import uuid
+from todoist_api_python.api import TodoistAPI
+import smtplib
+from azure.storage.blob import BlobServiceClient
+from io import StringIO
+import pandas as pd
+import os
+from email.message import EmailMessage
+
+from dotenv import load_dotenv
+load_dotenv()
+
+# import spacy
+
+# def load_spacy_model():
+#     try:
+#         nlp = spacy.load("es_core_news_sm")
+#     except OSError:
+#         from spacy.cli import download
+#         download("es_core_news_sm")
+#         nlp = spacy.load("es_core_news_sm")
+#     return nlp
+
+# nlp = load_spacy_model()
+
+# api_token = os.getenv("TODOIST_API_TOKEN")
+# api = TodoistAPI(api_token)
+
+# connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+# blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+# container_client = blob_service_client.get_container_client('todoistcontainer')
+
+# headers = {
+#     "Content-Type": "application/json",
+#     "X-Request-Id": "un_valor_único_por_cada_solicitud",
+#     "Authorization": f"Bearer {api_token}"
+# }
+
+# def getProjects():
+#     data = {
+#         "sync_token": "*",
+#         "resource_types": json.dumps(['projects'])
+#     }
+#     response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
+#     all_projects = response.json().get('projects', [])
+#     return all_projects
+
+# def getProjectsDicts(all_projects):
+#     projects_dict_id={}
+#     projects_dict_name={}
+#     for project in all_projects:
+#         projects_dict_id[project['id']]=project['name']
+#         projects_dict_name[project['name']]=project['id']
+#     return projects_dict_id, projects_dict_name
+
+# def getTasks():
+#     active_projects = getProjects()
+#     active_projects_ids, _ = getProjectsDicts(active_projects)
+#     data = {
+#         "sync_token": "*",
+#         "resource_types": json.dumps(['items'])
+#     }
+#     response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
+#     # print(response.json())
+#     all_tasks = response.json()["items"]
+#     active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
+#     return active_tasks
+
+# def getTasksDicts(all_tasks, projects_dict_id, projects_dict_name):
+#     task_dict_id={}
+#     task_dict_name={}
+#     for task in all_tasks:
+#         task_dict_name[task['content']]=[task['id'],projects_dict_id[task['project_id']]]
+#         task_dict_id[task['id']]=[task['content'],projects_dict_id[task['project_id']]]
+#     return task_dict_id, task_dict_name
+
+# def getSections(project_id = None):
+#     data = {
+#         "sync_token": "*",
+#         "resource_types": json.dumps(['sections'])
+#     }
+#     response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
+#     all_sections = response.json()["sections"]
+#     if project_id != None:
+#         # print("he entrado")
+#         return [section for section in all_sections if section.get('project_id') == project_id]
+#     return all_sections
+
+# def getSectionsDicts(all_sections):
+#     sections_dict_id={}
+#     sections_dict_name={}
+#     for section in all_sections:
+#         sections_dict_id[section['id']]=section['name']
+#         sections_dict_name[section['name']]=section['id']
+#     return sections_dict_id, sections_dict_name
+
+# def getTask(id):
+#     task = api.get_task(task_id = id)
+#     return task
+
+# def completeTask(id):
+#     try:
+#         api.close_task(id)
+#         print(f'La tarea {id} se completó')
+#     except:
+#         print(f'No ha sido posible completar la tarea {id}')
+        
+# def uncompleteTask(id):
+#     try:
+#         api.reopen_task(id)
+#         print(f'La tarea {id} está activa')
+#     except:
+#         print(f'No ha sido posible descompletar la tarea {id}')
+
+# def moveTask(task_id, project_id, section_id = None, parent_id = None):
+#     try:
+#         headers = {
+#             "Authorization": f"Bearer {api_token}"
+#         }
+#         data = {
+#             "commands": [{
+#                 "type": "item_move",
+#                 "uuid": str(uuid.uuid4()),  # Genera un identificador único
+#                 "args": {
+#                     "id": task_id,
+#                     "project_id": project_id
+#                 }
+#             }]
+#         }
+#         response = requests.post("https://api.todoist.com/sync/v9/sync", json=data, headers=headers)
+#         return response.json()
+#     except Exception as error:
+#         print('errrors')
+#         return error
+
+# def getLabelsWithoutDuration(task_id):
+#     task = getTask(task_id)
+#     list = task.labels
+#     if 'Short' in list:
+#         list.remove('Short')
+#     if 'Med' in list:
+#         list.remove('Med')
+#     if 'Long' in list:
+#         list.remove('Long')
+#     return list
+
+# def getDurationLabel(n):
+#     if n<5:
+#         return 'Short'
+#     if n<61:
+#         return 'Med'
+#     return 'Long'
+
+# def priorityInversal(n):
+#     return 5 - n
+
+# def getNextMonday():
+#     _today = datetime.now()
+#     days_to_monday = (0 - _today.weekday()) % 7 
+#     closer_monday = _today + timedelta(days=days_to_monday)
+#     return closer_monday
+
+# def sendEmail(subject, body, to):
+#     msg = EmailMessage()
+#     msg.set_content(body)
+#     msg['Subject'] = subject
+#     msg['From'] = os.getenv('MAIL')
+#     msg['To'] = to
+
+#     server = 'smtp-mail.outlook.com'
+#     port = 587
+
+#     username = os.getenv('MAIL')
+#     password = os.getenv('PASSWORD')
+
+#     with smtplib.SMTP(server, port) as smtp:
+#         smtp.starttls()
+#         smtp.login(username, password)
+#         smtp.send_message(msg)
+        
+# def jaccardCoef(cadena1, cadena2):
+#     set_cadena1 = set(cadena1.split())
+#     set_cadena2 = set(cadena2.split())
+
+#     interseccion = len(set_cadena1.intersection(set_cadena2))
+#     union = len(set_cadena1.union(set_cadena2))
+
+#     coeficiente = interseccion / union
+#     return coeficiente
+
+# def areSimilar(cadena1, cadena2, umbral=0.5):
+#     coeficiente = jaccardCoef(cadena1, cadena2)
+#     if coeficiente >= umbral:
+#         return f'{cadena1} & {cadena2}'
+
+# def readCsvFromBlob(blob_name):
+#     blob_client = container_client.get_blob_client(blob_name)
+#     blob_data = blob_client.download_blob().readall()
+#     data = StringIO(blob_data.decode('utf-8'))
+#     df = pd.read_csv(data)
+#     return df
+
+# def uploadCsvToBlob(df, blob_name):
+#     blob_client = container_client.get_blob_client(blob_name)
+#     output = StringIO()
+#     df.to_csv(output, index=False)
+#     output.seek(0)
+#     blob_client.upload_blob(output.getvalue(), overwrite=True)
+    
+# def capitalizeProperNounsSpacy(text):
+#     doc = nlp(text)
+#     result = []
+#     capitalize_next = True
+#     for token in doc:
+#         if token.text.isupper():
+#             result.append(token.text)
+#         elif capitalize_next and token.is_alpha:
+#             result.append(token.text.capitalize())
+#             capitalize_next = False
+#         elif token.ent_type_ in ['PER', 'LOC', 'ORG', 'MISC', 'PROD', 'EVENT', 'WORK_OF_ART', 'LAW', 'LANGUAGE']:
+#             result.append(token.text.capitalize())
+#         elif token.text.lower() == "españa":
+#             result.append("España")
+#         else:
+#             result.append(token.text)
+#         if token.text in '.!?':
+#             capitalize_next = True
+#     final_text = ''.join([tok if tok in '.,;:!?()[]{}' else ' ' + tok for tok in result]).strip()
+#     return final_text
+# #-----------functions
+
+# from todoist_api_python.api import TodoistAPI
+# from azure.storage.blob import BlobServiceClient
+
+# from datetime import datetime
+# import pandas as pd
+# import time
+# import os
+
+# from dotenv import load_dotenv
+
+# load_dotenv()
+ 
+# def mainDiego():
+#     try:
+#         today = datetime.today()
+
+#         messages = [f'Todoist Automation for {today.strftime("%Y-%m-%d")}']
+
+#         start_time = time.time()
+
+#         api_token = os.getenv("TODOIST_API_TOKEN")
+#         api = TodoistAPI(api_token)
+        
+#         connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+        
+#         try:
+#             blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+#             container_client = blob_service_client.get_container_client("todoist-container")
+#         except Exception as e:
+#             print(f'estamos aqui {e}')
+#             return False
+        
+#         all_projects = getProjects()
+#         projects_dict_id, projects_dict_name = getProjectsDicts(all_projects)
+
+#         def refreshTasks():
+#             all_tasks = getTasks()
+#             task_dict_id, task_dict_name = getTasksDicts(all_tasks, projects_dict_id, projects_dict_name)
+#             return all_tasks, task_dict_id, task_dict_name
+
+#         all_tasks, task_dict_id, task_dict_name = refreshTasks()
+
+#         all_sections = getSections()
+#         sections_dict_id, sections_dict_name = getSectionsDicts(all_sections)
+
+#         label_names=[]
+#         for task in all_tasks:
+#             gross_labels=task['labels']
+#             for label in gross_labels:
+#                 if label not in label_names:
+#                     label_names.append(label)
+#         label_names
+
+#         def createTask(
+#             content = "Tarea creada automáticamente",
+#             description = None,
+#             project_id = projects_dict_name['Inbox'],
+#             section_id = None,
+#             parent_id = None,
+#             order = 1,
+#             labels = [],
+#             priority = 1,
+#             comment_count = 0,
+#             due_string = None,
+#             due_date = None,
+#             due_datetime = None,
+#             due_lang = None,
+#             assignee_id = None,
+#             duration = None,
+#             duration_unit = None
+#         ):
+#             for label in labels:
+#                 if label not in label_names:
+#                     return f'La etiqueta {label} no existe'
+#             try:
+#                 task = api.add_task(
+#                     assignee_id = assignee_id,
+#                     comment_count = comment_count,
+#                     content = content,
+#                     description = description,
+#                     due_string = due_string,
+#                     due_date = due_date,
+#                     due_datetime = due_datetime,
+#                     due_lang = due_lang,
+#                     duration = duration,
+#                     labels = labels,
+#                     order = order,
+#                     priority = priorityInversal(priority),
+#                     project_id = project_id,
+#                     section_id = section_id,
+#                     parent_id = parent_id,
+#                     duration_unit = duration_unit
+#                 )
+#                 message = f'Task "{task.content}" ({task.id}) was created correctly'
+#                 return message
+#             except Exception as error:
+#                 print (error)
+#                 return error
+                
+#         def editTask(
+#             task_id,
+#             content = None,
+#             assignee_id = None,
+#             description = None,
+#             due_date = None,
+#             due_string = None,
+#             due_datetime = None,
+#             labels = None,
+#             priority = None,
+#         ):
+#             task = api.get_task(task_id)
+#             labels = task.labels if labels == None else labels
+#             content = task.content if content == None else content
+#             for label in labels:
+#                 if label not in label_names:
+#                     return f'La etiqueta {label} no existe'
+#             try:
+#                 api.update_task(
+#                     task_id = task_id,
+#                     assignee_id = assignee_id,
+#                     content = content,
+#                     description = description,
+#                     labels = labels,
+#                     priority = priority,
+#                     due_date = due_date,
+#                     due_string = due_string,
+#                     due_datetime = due_datetime,
+#                 )
+#                 message = f'Task {task.content} updated correctly to {content}'
+#                 return message
+#             except Exception as error:
+#                 return error
+
+#         def createSection(name, project_id):
+#             try:
+#                 section = api.add_section(name=name, project_id=project_id)
+#                 return section
+#             except Exception as error:
+#                 return error
+
+#         def updateTaskDurationLabel(task_id, task_duration):
+#             duration_label = getDurationLabel(task_duration)
+#             task_id = task_id[0]
+#             task_labels_without_duration = getLabelsWithoutDuration(task_id)
+#             task_labels_without_duration.append(duration_label)
+#             return editTask(task_id=task_id,
+#                     labels=task_labels_without_duration)
+
+#         to_update = False
+#         messages.append('Tasks to add duration label...')
+#         for task in all_tasks:
+#             if task['duration'] != None and task['due'] != None:
+#                 if getDurationLabel(task['duration']['amount']) not in task['labels']:
+#                     to_update = True
+#                     message = updateTaskDurationLabel([task['id']], task['duration']['amount'])
+#                     messages.append("- " + message)
+
+#         if not to_update:
+#             messages = messages[:-1]
+#             message = 'No tasks to add duration label'
+#             messages.append(message)
+#         else:
+#             all_tasks, task_dict_id, task_dict_name = refreshTasks()
+
+#         to_update = False
+#         messages.append("Tasks to capitalize some of it's words...")    
+#         for task in all_tasks:
+#             if task['project_id'] == projects_dict_name['Inbox']:
+#                 retext = capitalizeProperNounsSpacy(task['content'])
+#                 if retext != task['content']:
+#                     to_update = True
+#                     task_id = task["id"]
+#                     message = editTask(task_id = task_id,
+#                                     content = retext)
+#                     messages.append("- " + message)
+
+#         if not to_update:
+#             messages = messages[:-1]
+#             message = "No tasks to capitalize some of it's words"
+#             messages.append(message)
+#         else:
+#             all_tasks, task_dict_id, task_dict_name = refreshTasks()
+        
+#         try:
+#             df_recurringtasks = readCsvFromBlob('recurringtasks/recurringtasksdiego.csv')
+#         except Exception as e:
+#             print(f'Error al cargar el csv del blob: {e}')
+#             return False
+    
+#         recurringtasks = df_recurringtasks.set_index('task_id')['project_id'].to_dict()
+#         recurringtasks = {str(k): str(v) for k, v in recurringtasks.items()}
+
+#         cont = True
+#         to_update = False
+#         messages.append('Recurring tasks to uncomplete...')
+#         for task_id in recurringtasks.keys():
+#             project_id = recurringtasks[task_id]
+#             try:
+#                 project_name = projects_dict_id[project_id]
+#             except KeyError:
+#                 message = f'La tarea {task_id} está un proyecto que no existe: {project_id}'
+#                 messages.append("- " + message)
+#                 cont = False
+#             if cont:
+#                 if project_name != "Archivados" and project_name != "Tickler" :
+#                     task = getTask(task_id)
+#                     if task.is_completed:
+#                         to_update = True
+#                         uncompleteTask(task_id)
+#                         message = editTask(task_id=task_id,
+#                                         due_string="No date")
+#                         if task.project_id == projects_dict_name["Calendario"]:
+#                             moveTask(task_id=task_id,
+#                                          project_id='2263729931')
+#                         messages.append("- " + message)
+                
+#         if not to_update:
+#             messages = messages[:-1]
+#             message = "No recurring tasks to uncomplete"
+#             messages.append(message)
+#         else:
+#             all_tasks, task_dict_id, task_dict_name = refreshTasks()
+
+#         to_update = False
+#         messages.append('Birthday tasks to add labels...')
+#         for task in all_tasks:
+#             if task['project_id'] == projects_dict_name['Cumpleaños'] and task['labels'] != ['Phone','Short']:
+#                 to_update = True
+#                 message = editTask(task_id=task['id'],
+#                         labels=['Phone','Short'])
+#                 messages.append("- " + message)
+                
+#         if not to_update:
+#             messages = messages[:-1]
+#             message = "No birthday tasks to add labels"
+#             messages.append(message)
+#         else:
+#             all_tasks, task_dict_id, task_dict_name = refreshTasks()
+
+#         evaluate = True
+#         if getTask('4632052423').is_completed == True:
+#             uncompleteTask('4632052423')
+#             editTask('4632052423', due_string='every friday 20:00')
+#             message = 'Fantasy task moved back to fridays'
+#             print (message)
+#             messages.append(message)
+#             evaluate = False
+
+#         to_update = False
+#         if evaluate:
+#             if today.weekday() in [0,5,6] and getTask('4632052423').due.date != today.strftime('%Y-%m-%d'):
+#                 for task in all_tasks:
+#                     if task['section_id'] == '51988025' and task['parent_id'] == '6968182312':
+#                         try:
+#                             fantasydate = datetime.strptime(getTask('4632052423').due.date, '%Y-%m-%d')
+#                             matchday = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
+#                             if fantasydate > matchday > getNextMonday():
+#                                 message = 'Fantasy task moved to Tuesday'
+#                                 messages.append(message)
+#                                 editTask('4632052423', due_string="Tuesday")
+#                                 to_update = True
+#                                 all_tasks, task_dict_id, task_dict_name = refreshTasks()
+#                                 break
+#                         except TypeError:
+#                             pass
+#             if not to_update:
+#                 message = 'Fantasy not moved'
+#                 messages.append(message)
+
+#         def similarTasks(project_ids, umbral=0.5):
+#             project_tasks = []
+#             similars = []
+#             for task in all_tasks:
+#                 if task['project_id'] in project_ids:
+#                     project_tasks.append(task['id'])
+#             for i in range(len(project_tasks)-1):
+#                 for j in range(i+1,len(project_tasks)):
+#                     message = areSimilar(task_dict_id[project_tasks[i]][0],
+#                                                 task_dict_id[project_tasks[j]][0],
+#                                                 umbral=umbral) 
+#                     if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README':
+#                         similars.append(message)
+#             return similars
+                    
+#         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
+#                                              projects_dict_name['Recordatorios'],
+#                                              projects_dict_name['Tareas'],
+#                                              projects_dict_name['Calendario'],
+#                                              projects_dict_name['Cursos'],
+#                                              projects_dict_name['GitHub'],
+#                                              projects_dict_name['Diarias'],
+#                                              projects_dict_name['Semanales'],
+#                                              projects_dict_name['Mensuales']],
+#                                 umbral=0.7)
+#         if similars != []:
+#             messages.append('Next tasks are similar:')
+#             for similar in similars:
+#                 messages.append(f'- {similar}')
+#         else:
+#             messages.append('No similar tasks')
+
+#         to_update = False
+#         for task in all_tasks:
+#             if 'Vacations' in task['labels'] and task['project_id']==projects_dict_name['Calendario']:
+#                 title = task["content"]
+#                 try:
+#                     task_dict_name[f'Preparar maleta {title}']
+#                 except:
+#                     to_update = True
+#                     message = createTask(content=f'Preparar maleta {title}',
+#                                         due_string=f"3 dias antes de {task['due']['date']}",
+#                                         priority=2,
+#                                         project_id=projects_dict_name['Recordatorios'])
+#                     messages.append(message)
+#         if to_update:
+#             all_tasks, task_dict_id, task_dict_name = refreshTasks()
+
+#         def newF1Season(year, grand_prix_dict):
+#             f1_project_id = projects_dict_name['Fórmula 1']
+#             section_id = createSection(year, f1_project_id).id
+#             for gp in grand_prix_dict.keys():
+#                 task_id = createTask(content=f'* {gp.upper()}', project_id=f1_project_id, section_id=section_id)[-33:-23]
+#                 day = grand_prix_dict[gp]
+#                 createTask(content=f"Apuntar hora {gp.capitalize()}", priority = 3, due_string=f'4 weeks before {day}', project_id=projects_dict_name['Recordatorios'], labels=['PC','Short'])
+#                 createTask(content='Practice 1', priority=3, due_string=f'2 days before {day}', parent_id=task_id)
+#                 createTask(content='Practice 2', priority=3, due_string=f'2 days before {day}', parent_id=task_id)
+#                 createTask(content='Practice 3', priority=3, due_string=f'1 day before {day}', parent_id=task_id)
+#                 createTask(content='Qualifying', priority=1, due_string=f'1 day before {day}', parent_id=task_id)
+#                 createTask(content='Race', priority=1, due_string=day, parent_id=task_id)
+
+#         grand_prix_dict = {'AUSTRALIAN GRAND PRIX':'16-03-2025',
+#                            'CHINESE GRAND PRIX':'23-03-2025',
+#                            'JAPANESE GRAND PRIX':'06-04-2025',
+#                            'BAHRAIN GRAND PRIX':'13-04-2025',
+#                            'SAUDI ARABIA GRAND PRIX':'20-04-2025',
+#                            'MIAMI GRAND PRIX':'04-05-2025',
+#                            "GRAN PREMIO DEL MADE IN ITALY DELL'EMILIA-ROMAGNA":'18-05-2025',
+#                            'GRAND PRIX DE MONACO':'25-05-2025',
+#                            'GRAN PREMIO DE ESPAÑA':'01-06-2025',
+#                            'GRAND PRIX DU CANADA':'15-06-2025',
+#                            'GROSSER PREIS VON ÖSTERREICH':'29-06-2025',
+#                            'BRITISH GRAND PRIX':'06-07-2025',
+#                            'BELGIAN GRAND PRIX':'27-07-2025',
+#                            'HUNGARIAN GRAND PRIX':'03-08-2025',
+#                            'DUTCH GRAND PRIX':'31-08-2025',
+#                            "GRAN PREMIO D'ITALIA":'07-09-2025',
+#                            'AZERBAIJAN GRAND PRIX':'21-09-2025',
+#                            'SINGAPORE GRAND PRIX':'05-10-2025',
+#                            'UNITED STATES GRAND PRIX':'19-10-2025',
+#                            'GRAN PREMIO DE LA CIUDAD DE MEXICO':'26-10-2025',
+#                            'GRANDE PRÊMIO DE SÃO PAULO':'09-11-2025',
+#                            'LAS VEGAS GRAND PRIX':'22-11-2025',
+#                            'QATAR GRAND PRIX':'30-11-2025',
+#                            'ABU DHABI GRAND PRIX':'7-12-2025'
+#                            }
+
+#         # newF1Season('2025',grand_prix_dict=grand_prix_dict)
+
+#         tasks = api.get_tasks()
+#         recurringtasks={}
+#         for task in tasks:
+#             if 'Recurring' in task.labels:
+#                 recurringtasks[task.id]=task.project_id
+#         df_recurringtasks = pd.DataFrame.from_dict({'task_id':recurringtasks.keys(),'project_id':recurringtasks.values()})
+        
+#         try:
+#             uploadCsvToBlob(df_recurringtasks, 'recurringtasks/recurringtasksdiego.csv')
+#         except:
+#             messages.append("Error al guardar las tareas recurrentes")
+        
+#         end_time = time.time()
+
+#         runtime = f'Runtime: {round(end_time-start_time,3)} seconds'
+#         messages.append(runtime)
+
+#         body = messages[0] + "\n"
+#         count = 0
+#         for i in range(1, len(messages)):
+#             if messages[i][0] != "-":
+#                 body = body + "\n" + f"{i - count}. " + messages[i] +"\n"
+#             else:
+#                 body = body + "  " + messages[i] +"\n"
+#                 count += 1
+
+#         sendEmail("Daily Todoist", body, "diegorodgar17@gmail.com")
+
+#         return True
+    
+#     except Exception as e:
+#         body = messages[0] + "\n"
+#         count = 0
+#         for i in range(1, len(messages)):
+#             if messages[i][0] != "-":
+#                 body = body + "\n" + f"{i - count}. " + messages[i] +"\n"
+#             else:
+#                 body = body + "  " + messages[i] +"\n"
+#                 count += 1
+#         try:
+#             sendEmail("Daily Todoist - Error", f"{body}\n\n{e}", "diegorodgar17@gmail.com")
+#         except:
+#             pass
+#         return e
+
+# def mainToni():
+#     try:
+#         sendEmail("Daily Todoist", f'...', 'asevillasastre@gmail.com')
+#         return True
+#     except Exception as e:
+#         sendEmail("Daily Todoist - Error", f'...', 'asevillasastre@gmail.com')
+#         return e
+    
+# def mainRetu():
+#     try:
+#         sendEmail("Daily Todoist", f'...', 'marioretu00@gmail.com')
+#         return True
+#     except Exception as e:
+#         sendEmail("Daily Todoist - Error", f'...', 'marioretu00@gmail.com')
+#         return e
+# # ------------main
+
+
+app = func.FunctionApp()
+
+@app.schedule(schedule="0 0 3 * * *", arg_name="myTimer", run_on_startup=True,
+              use_monitor=False) 
+def TodoistTimerTrigger(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('The timer is past due!')
+        
+    # respDiego = mainDiego()
+    respDiego = 'tbd'
+    logging.info(f'Diego execution: {respDiego}')
+    
+    # respToni = mainToni()
+    respToni = 'tbd'
+    logging.info(f'Toni execution: {respToni}')
+    
+    # respRetu = mainRetu()
+    respRetu = 'tbd'
+    logging.info(f'Retu execution: {respRetu}')
+    
+    

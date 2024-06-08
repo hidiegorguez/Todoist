@@ -163,24 +163,24 @@ def mainDiego():
         else:
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
 
-        to_update = False
-        messages.append("Tasks to capitalize some of it's words...")    
-        for task in all_tasks:
-            if task['project_id'] == projects_dict_name['Inbox']:
-                retext = fun.capitalizeProperNounsSpacy(task['content'])
-                if retext != task['content']:
-                    to_update = True
-                    task_id = task["id"]
-                    message = editTask(task_id = task_id,
-                                    content = retext)
-                    messages.append("- " + message)
+        # to_update = False
+        # messages.append("Tasks to capitalize some of it's words...")    
+        # for task in all_tasks:
+        #     if task['project_id'] == projects_dict_name['Inbox']:
+        #         retext = fun.capitalizeProperNounsSpacy(task['content'])
+        #         if retext != task['content']:
+        #             to_update = True
+        #             task_id = task["id"]
+        #             message = editTask(task_id = task_id,
+        #                             content = retext)
+        #             messages.append("- " + message)
 
-        if not to_update:
-            messages = messages[:-1]
-            message = "No tasks to capitalize some of it's words"
-            messages.append(message)
-        else:
-            all_tasks, task_dict_id, task_dict_name = refreshTasks()
+        # if not to_update:
+        #     messages = messages[:-1]
+        #     message = "No tasks to capitalize some of it's words"
+        #     messages.append(message)
+        # else:
+        #     all_tasks, task_dict_id, task_dict_name = refreshTasks()
         
         try:
             df_recurringtasks = fun.readCsvFromBlob('recurringtasks/recurringtasksdiego.csv')
@@ -400,7 +400,6 @@ def mainDiego():
             fun.sendEmail("Daily Todoist - Error", f"{body}\n\n{e}", "diegorodgar17@gmail.com")
         except:
             pass
-        
         return e
 
 def mainToni():

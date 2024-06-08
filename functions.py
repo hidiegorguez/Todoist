@@ -15,16 +15,16 @@ load_dotenv()
 
 import spacy
 
-def load_spacy_model():
-    try:
-        nlp = spacy.load("es_core_news_sm")
-    except OSError:
-        from spacy.cli import download
-        download("es_core_news_sm")
-        nlp = spacy.load("es_core_news_sm")
-    return nlp
+# def load_spacy_model():
+#     try:
+#         nlp = spacy.load("es_core_news_sm")
+#     except OSError:
+#         from spacy.cli import download
+#         download("es_core_news_sm")
+#         nlp = spacy.load("es_core_news_sm")
+#     return nlp
 
-nlp = load_spacy_model()
+# nlp = load_spacy_model()
 
 api_token = os.getenv("TODOIST_API_TOKEN")
 api = TodoistAPI(api_token)
@@ -210,24 +210,24 @@ def uploadCsvToBlob(df, blob_name):
     output.seek(0)
     blob_client.upload_blob(output.getvalue(), overwrite=True)
     
-def capitalizeProperNounsSpacy(text):
-    doc = nlp(text)
-    result = []
-    capitalize_next = True
-    for token in doc:
-        if token.text.isupper():
-            result.append(token.text)
-        elif capitalize_next and token.is_alpha:
-            result.append(token.text.capitalize())
-            capitalize_next = False
-        elif token.ent_type_ in ['PER', 'LOC', 'ORG', 'MISC', 'PROD', 'EVENT', 'WORK_OF_ART', 'LAW', 'LANGUAGE']:
-            result.append(token.text.capitalize())
-        elif token.text.lower() == "españa":
-            result.append("España")
-        else:
-            result.append(token.text)
-        if token.text in '.!?':
-            capitalize_next = True
-    final_text = ''.join([tok if tok in '.,;:!?()[]{}' else ' ' + tok for tok in result]).strip()
-    return final_text
+# def capitalizeProperNounsSpacy(text):
+#     doc = nlp(text)
+#     result = []
+#     capitalize_next = True
+#     for token in doc:
+#         if token.text.isupper():
+#             result.append(token.text)
+#         elif capitalize_next and token.is_alpha:
+#             result.append(token.text.capitalize())
+#             capitalize_next = False
+#         elif token.ent_type_ in ['PER', 'LOC', 'ORG', 'MISC', 'PROD', 'EVENT', 'WORK_OF_ART', 'LAW', 'LANGUAGE']:
+#             result.append(token.text.capitalize())
+#         elif token.text.lower() == "españa":
+#             result.append("España")
+#         else:
+#             result.append(token.text)
+#         if token.text in '.!?':
+#             capitalize_next = True
+#     final_text = ''.join([tok if tok in '.,;:!?()[]{}' else ' ' + tok for tok in result]).strip()
+#     return final_text
 
