@@ -396,7 +396,10 @@ def mainDiego():
             else:
                 body = body + "  " + messages[i] +"\n"
                 count += 1
-        fun.sendEmail("Daily Todoist - Error", f"{body}\n\n{e}", "diegorodgar17@gmail.com")
+        try:
+            fun.sendEmail("Daily Todoist - Error", f"{body}\n\n{e}", "diegorodgar17@gmail.com")
+        except:
+            pass
         
         return e
 
