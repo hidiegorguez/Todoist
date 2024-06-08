@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import uuid
 from todoist_api_python.api import TodoistAPI
 import smtplib
-from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from azure.storage.blob import BlobServiceClient
 from io import StringIO
 import pandas as pd
 import os
