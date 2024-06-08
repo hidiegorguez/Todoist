@@ -377,7 +377,9 @@ def mainDiego():
         body = messages[0] + "\n"
         count = 0
         for i in range(1, len(messages)):
-            if messages[i][0] != "-":
+            if messages[i][:9] == "Runtime: ":
+                body = body + "\n" + messages[i]
+            elif messages[i][0] != "-":
                 body = body + "\n" + f"{i - count}. " + messages[i] +"\n"
             else:
                 body = body + "  " + messages[i] +"\n"
