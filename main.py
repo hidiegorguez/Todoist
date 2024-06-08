@@ -251,7 +251,7 @@ def mainDiego():
         if evaluate:
             if today.weekday() in [0,5,6] and fun.getTask('4632052423').due.date != today.strftime('%Y-%m-%d'):
                 for task in all_tasks:
-                    if task['section_id'] == '51988025' and task['parent_id'] == '6968182312':
+                    if task['section_id'] == '51988025' and task['parent_id'] == '8023322112':
                         try:
                             fantasydate = datetime.strptime(fun.getTask('4632052423').due.date, '%Y-%m-%d')
                             matchday = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
@@ -315,47 +315,6 @@ def mainDiego():
                     messages.append(message)
         if to_update:
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
-
-        def newF1Season(year, grand_prix_dict):
-            f1_project_id = projects_dict_name['Fórmula 1']
-            section_id = createSection(year, f1_project_id).id
-            for gp in grand_prix_dict.keys():
-                task_id = createTask(content=f'* {gp.upper()}', project_id=f1_project_id, section_id=section_id)[-33:-23]
-                day = grand_prix_dict[gp]
-                createTask(content=f"Apuntar hora {gp.capitalize()}", priority = 3, due_string=f'4 weeks before {day}', project_id=projects_dict_name['Recordatorios'], labels=['PC','Short'])
-                createTask(content='Practice 1', priority=3, due_string=f'2 days before {day}', parent_id=task_id)
-                createTask(content='Practice 2', priority=3, due_string=f'2 days before {day}', parent_id=task_id)
-                createTask(content='Practice 3', priority=3, due_string=f'1 day before {day}', parent_id=task_id)
-                createTask(content='Qualifying', priority=1, due_string=f'1 day before {day}', parent_id=task_id)
-                createTask(content='Race', priority=1, due_string=day, parent_id=task_id)
-
-        grand_prix_dict = {'AUSTRALIAN GRAND PRIX':'16-03-2025',
-                           'CHINESE GRAND PRIX':'23-03-2025',
-                           'JAPANESE GRAND PRIX':'06-04-2025',
-                           'BAHRAIN GRAND PRIX':'13-04-2025',
-                           'SAUDI ARABIA GRAND PRIX':'20-04-2025',
-                           'MIAMI GRAND PRIX':'04-05-2025',
-                           "GRAN PREMIO DEL MADE IN ITALY DELL'EMILIA-ROMAGNA":'18-05-2025',
-                           'GRAND PRIX DE MONACO':'25-05-2025',
-                           'GRAN PREMIO DE ESPAÑA':'01-06-2025',
-                           'GRAND PRIX DU CANADA':'15-06-2025',
-                           'GROSSER PREIS VON ÖSTERREICH':'29-06-2025',
-                           'BRITISH GRAND PRIX':'06-07-2025',
-                           'BELGIAN GRAND PRIX':'27-07-2025',
-                           'HUNGARIAN GRAND PRIX':'03-08-2025',
-                           'DUTCH GRAND PRIX':'31-08-2025',
-                           "GRAN PREMIO D'ITALIA":'07-09-2025',
-                           'AZERBAIJAN GRAND PRIX':'21-09-2025',
-                           'SINGAPORE GRAND PRIX':'05-10-2025',
-                           'UNITED STATES GRAND PRIX':'19-10-2025',
-                           'GRAN PREMIO DE LA CIUDAD DE MEXICO':'26-10-2025',
-                           'GRANDE PRÊMIO DE SÃO PAULO':'09-11-2025',
-                           'LAS VEGAS GRAND PRIX':'22-11-2025',
-                           'QATAR GRAND PRIX':'30-11-2025',
-                           'ABU DHABI GRAND PRIX':'7-12-2025'
-                           }
-
-        # newF1Season('2025',grand_prix_dict=grand_prix_dict)
 
         tasks = api.get_tasks()
         recurringtasks={}
