@@ -14,12 +14,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import spacy
-try:
-    nlp = spacy.load("es_core_news_sm")
-except OSError:
-    from spacy.cli import download
-    download("es_core_news_sm")
-    nlp = spacy.load("es_core_news_sm")
+
+def load_spacy_model():
+    try:
+        nlp = spacy.load("es_core_news_sm")
+    except OSError:
+        from spacy.cli import download
+        download("es_core_news_sm")
+        nlp = spacy.load("es_core_news_sm")
+    return nlp
+
+nlp = load_spacy_model()
 
 api_token = os.getenv("TODOIST_API_TOKEN")
 api = TodoistAPI(api_token)
