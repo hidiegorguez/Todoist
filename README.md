@@ -1,3 +1,5 @@
+<img src="data/logo.png" width="420px">
+
 # Todoist Automation with Python
 
 ## Workflow
