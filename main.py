@@ -18,6 +18,7 @@ def mainDiego():
         today = datetime.today()
         messages = [f'Todoist Automation for {today.strftime("%Y-%m-%d")}']
         duration_msgs = []
+        inbox_cleaning_msg = []
         capitalization_msgs = []
         birthday_msgs = []
         suitcase_msgs = []
@@ -26,6 +27,7 @@ def mainDiego():
         fantasy_msg = []
         recurringtasks_msg = []
         messages_dict = {f'Tasks to add duration labels:': duration_msgs,
+                         f'Tasks to move out from de inbox:': inbox_cleaning_msg,
                          f'Tasks to capitalize its content:': capitalization_msgs,
                          f'Tasks to add birthday labels:': birthday_msgs,
                          f'New suitcase tasks:': suitcase_msgs,
@@ -125,6 +127,8 @@ def mainDiego():
             for label in labels:
                 if label not in label_names:
                     return f'La etiqueta {label} no existe'
+            if priority != None:
+                priority = fun.priorityInversal(priority)
             try:
                 api.update_task(
                     task_id = task_id,
@@ -169,6 +173,8 @@ def mainDiego():
                         similars.append(message)
             return similars
         
+        all_tasks, task_dict_id, task_dict_name = refreshTasks()
+        
         # Basic orders
         for task in all_tasks:
             
@@ -179,12 +185,22 @@ def mainDiego():
                                                       task['duration']['amount'])
                     duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
+            # Move out from the inbox
+            if task['project_id'] == projects_dict_name['Inbox']:
+                message = editTask(task_id=task['id'],
+                                   content=task['content'][0].upper()+task['content'][1:],
+                                   priority=3,
+                                   due_string="today")
+                fun.moveTask(task_id=task['id'],
+                             project_id=projects_dict_name['Tareas'])
+                inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
+                
             # Capitalize title
-            if task['content'][0].upper() != task['content'][0]:
+            if task["content"][0].upper() != task["content"][0]:
                 message = editTask(task_id=task['id'],
                                    content=task['content'][0].upper()+task['content'][1:])
                 capitalization_msgs.append('- '+message.split(' updated correctly to ')[-1])
-               
+                
             # Capitalize some words 
             if task['project_id'] == projects_dict_name['Inbox']:
                 break
@@ -227,7 +243,7 @@ def mainDiego():
                                                 priority=3,
                                                 project_id=projects_dict_name['Recordatorios'])
                         expenses_msgs.append("- "+message)
-        
+    
         if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
                 
@@ -352,9 +368,9 @@ def mainDiego():
     except Exception as e:
         try:
             fun.sendEmail("Daily Todoist - Error", f"{messages[0]}\n\nThere was an error:\n- {e}", "diegorodgar17@gmail.com")
+            return False
         except Exception as e2:
-            pass
-        return f'Error {e}\n\nAnd error sending error mail: {e2}'
+            return f'Error {e}\n\nAnd error sending error mail: {e2}'
 
 def mainToni():
     try:
