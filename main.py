@@ -194,6 +194,7 @@ def mainDiego():
                 fun.moveTask(task_id=task['id'],
                              project_id=projects_dict_name['Tareas'])
                 inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
+                break
                 
             # Capitalize title
             if task["content"][0].upper() != task["content"][0]:
