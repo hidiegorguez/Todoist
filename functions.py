@@ -209,7 +209,22 @@ def uploadCsvToBlob(df, blob_name):
     df.to_csv(output, index=False)
     output.seek(0)
     blob_client.upload_blob(output.getvalue(), overwrite=True)
-    
+
+def getCompletedTasks(last_days=10):
+    active_projects = getProjects()
+    active_projects_ids, _ = getProjectsDicts(active_projects)
+    end_date = datetime.now() - timedelta(days=last_days)
+    end_date_str = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+    data = {
+        "sync_token": "*",
+        "resource_types": json.dumps(['items']),
+        "filters": json.dumps({"completed": "true", "until": end_date_str})
+    }
+    response = requests.post("https://api.todoist.com/sync/v9/completed/get_all", headers=headers, data=json.dumps(data))
+    all_completed_tasks = response.json()["items"]
+    completed_tasks = [task for task in all_completed_tasks if task['project_id'] in active_projects_ids]
+    return completed_tasks
+
 # def capitalizeProperNounsSpacy(text):
 #     doc = nlp(text)
 #     result = []

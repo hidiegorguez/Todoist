@@ -299,29 +299,45 @@ def mainDiego():
         if update_recurringtasksdiego:
             recurringtasks = df_recurringtasks.set_index('task_id')['project_id'].to_dict()
             recurringtasks = {str(k): str(v) for k, v in recurringtasks.items()}
-            exists = True
+            # exists = True
             to_update = False
-            for task_id in recurringtasks.keys():
-                project_id = recurringtasks[task_id]
-                try:
-                    project_name = projects_dict_id[project_id]
-                except KeyError:
-                    message = f'La tarea {task_id} está un proyecto que no existe: {project_id}'
+            
+            completed_tasks = fun.getCompletedTasks(3)
+            for task in completed_tasks:
+                task_id = task['task_id']
+                project_id = task['project_id']
+                if task_id in recurringtasks.keys() and task_id not in task_dict_id:
+                    to_update = True
+                    fun.uncompleteTask(task_id)
+                    message = editTask(task_id=task_id,
+                                        due_string="No date")
+                    if project_id == projects_dict_name["Calendario"]:
+                        fun.moveTask(task_id=task_id,
+                                        project_id='2263729931')
+                        message += ' and it was moved from "Calendario" to "Archivados"'
                     recurringtasks_msg.append("- " + message)
-                    exists = False
-                if exists:
-                    if project_name != "Archivados" and project_name != "Tickler" :
-                        task = fun.getTask(task_id)
-                        if task.is_completed:
-                            to_update = True
-                            fun.uncompleteTask(task_id)
-                            message = editTask(task_id=task_id,
-                                               due_string="No date")
-                            if task.project_id == projects_dict_name["Calendario"]:
-                                fun.moveTask(task_id=task_id,
-                                             project_id='2263729931')
-                                message += 'and it was moved from "Calendario" to "Archivados"'
-                            recurringtasks_msg.append("- " + message)
+            
+            # for task_id in recurringtasks.keys():
+            #     project_id = recurringtasks[task_id]
+            #     try:
+            #         project_name = projects_dict_id[project_id]
+            #     except KeyError:
+            #         message = f'La tarea {task_id} está un proyecto que no existe: {project_id}'
+            #         recurringtasks_msg.append("- " + message)
+            #         exists = False
+            #     if exists:
+            #         if project_name != "Archivados" and project_name != "Tickler" :
+            #             task = fun.getTask(task_id)
+            #             if task.is_completed:
+            #                 to_update = True
+            #                 fun.uncompleteTask(task_id)
+            #                 message = editTask(task_id=task_id,
+            #                                    due_string="No date")
+            #                 if task.project_id == projects_dict_name["Calendario"]:
+            #                     fun.moveTask(task_id=task_id,
+            #                                  project_id='2263729931')
+            #                     message += ' and it was moved from "Calendario" to "Archivados"'
+            #                 recurringtasks_msg.append("- " + message)
                 
             if to_update:
                 
