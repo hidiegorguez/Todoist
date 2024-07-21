@@ -2,7 +2,7 @@ import functions as fun
 from todoist_api_python.api import TodoistAPI
 from azure.storage.blob import BlobServiceClient
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import time
 import os
@@ -202,17 +202,6 @@ def mainDiego():
                                    content=task['content'][0].upper()+task['content'][1:])
                 capitalization_msgs.append('- '+message.split(' updated correctly to ')[-1])
                 
-            # Capitalize some words 
-            if task['project_id'] == projects_dict_name['Inbox']:
-                break
-                retext = fun.capitalizeProperNounsSpacy(task['content'])
-                if retext != task['content']:
-                    to_update = True
-                    task_id = task["id"]
-                    message = editTask(task_id = task_id,
-                                    content = retext)
-                    capitalization_msgs.append("- " + message)
-                
             # Birthday labels
             if task['project_id'] == projects_dict_name['Cumpleaños'] and task['labels'] != ['Phone','Short']:
                 to_update = True
@@ -226,11 +215,13 @@ def mainDiego():
                 try:
                     task_dict_name[f'Preparar maleta {title}']
                 except:
-                    message = createTask(content=f'Preparar maleta {title}',
-                                         due_string=f"3 dias antes de {task['due']['date']}",
-                                         priority=2,
-                                         project_id=projects_dict_name['Recordatorios'])
-                    suitcase_msgs.append("- "+message)
+                    vacation_day = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
+                    if vacation_day < today + timedelta(days=2):
+                        message = createTask(content=f'Preparar maleta {title}',
+                                            due_string=f"3 dias antes de {task['due']['date']}",
+                                            priority=2,
+                                            project_id=projects_dict_name['Recordatorios'])
+                        suitcase_msgs.append("- "+message)
             
             # Expenses task
             if 'Vacations' in task['labels'] and task['project_id'] == projects_dict_name['Calendario']:
@@ -299,7 +290,6 @@ def mainDiego():
         if update_recurringtasksdiego:
             recurringtasks = df_recurringtasks.set_index('task_id')['project_id'].to_dict()
             recurringtasks = {str(k): str(v) for k, v in recurringtasks.items()}
-            # exists = True
             to_update = False
             
             completed_tasks = fun.getCompletedTasks(3)
@@ -316,28 +306,6 @@ def mainDiego():
                                         project_id='2263729931')
                         message += ' and it was moved from "Calendario" to "Archivados"'
                     recurringtasks_msg.append("- " + message)
-            
-            # for task_id in recurringtasks.keys():
-            #     project_id = recurringtasks[task_id]
-            #     try:
-            #         project_name = projects_dict_id[project_id]
-            #     except KeyError:
-            #         message = f'La tarea {task_id} está un proyecto que no existe: {project_id}'
-            #         recurringtasks_msg.append("- " + message)
-            #         exists = False
-            #     if exists:
-            #         if project_name != "Archivados" and project_name != "Tickler" :
-            #             task = fun.getTask(task_id)
-            #             if task.is_completed:
-            #                 to_update = True
-            #                 fun.uncompleteTask(task_id)
-            #                 message = editTask(task_id=task_id,
-            #                                    due_string="No date")
-            #                 if task.project_id == projects_dict_name["Calendario"]:
-            #                     fun.moveTask(task_id=task_id,
-            #                                  project_id='2263729931')
-            #                     message += ' and it was moved from "Calendario" to "Archivados"'
-            #                 recurringtasks_msg.append("- " + message)
                 
             if to_update:
                 
