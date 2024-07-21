@@ -220,6 +220,7 @@ def mainDiego():
                         message = createTask(content=f'Preparar maleta {title}',
                                             due_string=f"3 dias antes de {task['due']['date']}",
                                             priority=2,
+                                            labels=['Long', 'Home'],
                                             project_id=projects_dict_name['Recordatorios'])
                         suitcase_msgs.append("- "+message)
             
@@ -233,6 +234,7 @@ def mainDiego():
                         message = createTask(content=f'Apuntar gastos de {title}',
                                                 due_string=f"1 dia despues de {task['due']['string'][-10:]}",
                                                 priority=3,
+                                                labels=['Phone', 'PC', 'Long'],
                                                 project_id=projects_dict_name['Recordatorios'])
                         expenses_msgs.append("- "+message)
     
