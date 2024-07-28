@@ -261,7 +261,7 @@ def mainDiego():
         if fun.getTask('4632052423').is_completed == True:
             fun.uncompleteTask('4632052423')
             editTask('4632052423', due_string='every friday 20:00')
-            message = 'Fantasy task moved back to fridays'
+            message = 'Fantasy task moved back to weekends'
             fantasy_msg.append(message)
             evaluate = False
         if evaluate:
@@ -273,7 +273,7 @@ def mainDiego():
                             matchday = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
                             if fantasydate > matchday > fun.getNextMonday():
                                 message = 'Fantasy task moved to Tuesday'
-                                fantasy_msg.append(message)
+                                fantasy_msg.append(message) 
                                 editTask('4632052423', due_string="Tuesday")
                                 all_tasks, task_dict_id, task_dict_name = refreshTasks()
                                 break
@@ -334,7 +334,7 @@ def mainDiego():
                     body += "  " + msg +"\n"
                 count += 1
         if fantasy_msg != []:
-            body += "\n" + f"{count}." + fantasy_msg + "\n"  
+            body += "\n" + f"{count}." + fantasy_msg[0] + "\n"  
         if recurringtasks_msg != []:
             if recurringtasks_msg[0][:2] != "- ":
                 body += "\n" + f"{count}. " + recurringtasks_msg[0] + "\n"
