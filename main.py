@@ -241,6 +241,16 @@ def mainDiego():
         if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
                 
+        # Counter task
+        counter_task = fun.getTask(8326227450)
+        if counter_task.is_completed:
+            print('task completed')
+            fun.uncompleteTask(8326227450)
+            editTask(task_id=8326227450,
+                     due_string="today at 6 am")
+        else:
+            print('task uncompleted')        
+            
         # Similar tasks       
         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
                                              projects_dict_name['Recordatorios'],
