@@ -242,12 +242,12 @@ def mainDiego():
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
                 
         # Counter task
-        counter_task = fun.getTask(8326227450)
+        counter_task_id = 8326227450
+        counter_task = fun.getTask(counter_task_id)
         if counter_task.is_completed:
-            fun.uncompleteTask(8326227450)
-            editTask(task_id=8326227450,
-                     due_string="today at 6 am")
-        else:      
+            fun.uncompleteTask(counter_task_id)
+        editTask(task_id=counter_task_id,
+                 due_string="today at 6 am")
             
         # Similar tasks       
         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
