@@ -244,12 +244,10 @@ def mainDiego():
         # Counter task
         counter_task = fun.getTask(8326227450)
         if counter_task.is_completed:
-            print('task completed')
             fun.uncompleteTask(8326227450)
             editTask(task_id=8326227450,
                      due_string="today at 6 am")
-        else:
-            print('task uncompleted')        
+        else:      
             
         # Similar tasks       
         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
