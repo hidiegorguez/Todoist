@@ -205,10 +205,18 @@ def mainDiego():
             # Birthday labels
             if task['project_id'] == projects_dict_name['Cumpleaños'] and task['labels'] != ['Phone','Short']:
                 to_update = True
-                message = editTask(task_id=task['id'],
-                        labels=['Phone','Short'])
-                birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
-
+                try:
+                    month = task['due']['date'][5:7]
+                    day = task['due']['date'][8:10]
+                    message = editTask(task_id=task['id'],
+                                    due_string=f'cada {day} {month} 23:00',
+                                    labels=['Phone','Short'])
+                    fun.setReminder(task_id=task['id'],
+                                    minute_offset=1380)
+                    birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
+                except:
+                    birthday_msgs.append(f'Task "{task['content']}" probably does not have a proper due_string')
+                    
             # Suitcase task
             if 'Vacations' in task['labels'] and task['project_id'] == projects_dict_name['Calendario']:
                 title = task["content"]

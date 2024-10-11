@@ -28,6 +28,7 @@ import spacy
 
 api_token = os.getenv("TODOIST_API_TOKEN")
 api = TodoistAPI(api_token)
+sync_url = "https://api.todoist.com/sync/v9/sync"
 
 connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
 blob_service_client = BlobServiceClient.from_connection_string(connect_str)
@@ -44,7 +45,7 @@ def getProjects():
         "sync_token": "*",
         "resource_types": json.dumps(['projects'])
     }
-    response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
+    response = requests.post(sync_url, headers=headers, data=json.dumps(data))
     all_projects = response.json().get('projects', [])
     return all_projects
 
@@ -63,7 +64,7 @@ def getTasks():
         "sync_token": "*",
         "resource_types": json.dumps(['items'])
     }
-    response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
+    response = requests.post(sync_url, headers=headers, data=json.dumps(data))
     # print(response.json())
     all_tasks = response.json()["items"]
     active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
@@ -82,7 +83,7 @@ def getSections(project_id = None):
         "sync_token": "*",
         "resource_types": json.dumps(['sections'])
     }
-    response = requests.post("https://api.todoist.com/sync/v9/sync", headers=headers, data=json.dumps(data))
+    response = requests.post(sync_url, headers=headers, data=json.dumps(data))
     all_sections = response.json()["sections"]
     if project_id != None:
         # print("he entrado")
@@ -100,6 +101,28 @@ def getSectionsDicts(all_sections):
 def getTask(id):
     task = api.get_task(task_id = id)
     return task
+
+def setReminder(task_id, minute_offset): 
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_token}",
+    }
+    commands = [
+        {
+            "type": "reminder_add",
+            "temp_id": str(uuid.uuid4()),
+            "uuid": str(uuid.uuid4()),
+            "args": {
+                "item_id": task_id,
+                "minute_offset": minute_offset,
+                "type": "relative"
+            }
+        }
+    ]
+    data = {"commands": commands}
+    response = requests.post(sync_url, headers=headers, json=data)
+    
+    return response.json()
 
 def completeTask(id):
     try:
@@ -130,7 +153,7 @@ def moveTask(task_id, project_id, section_id = None, parent_id = None):
                 }
             }]
         }
-        response = requests.post("https://api.todoist.com/sync/v9/sync", json=data, headers=headers)
+        response = requests.post(sync_url, json=data, headers=headers)
         return response.json()
     except Exception as error:
         print('errrors')
