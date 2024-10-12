@@ -224,7 +224,7 @@ def mainDiego():
                     task_dict_name[f'Preparar maleta {title}']
                 except:
                     vacation_day = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
-                    if vacation_day < today + timedelta(days=2):
+                    if vacation_day > today + timedelta(days=3):
                         message = createTask(content=f'Preparar maleta {title}',
                                             due_string=f"3 dias antes de {task['due']['date']}",
                                             priority=2,
