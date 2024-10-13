@@ -251,9 +251,12 @@ def mainDiego():
         counter_task_id = 8326227450
         counter_task = fun.getTask(counter_task_id)
         if counter_task.is_completed:
-            fun.uncompleteTask(counter_task_id)
-        editTask(task_id=counter_task_id,
-                 due_string="today at 6 am")
+            print('task completed')
+            tf.uncompleteTask(counter_task_id)
+            editTask(task_id=counter_task_id,
+                     due_string="today at 6 am")
+        else:
+            print('task uncompleted')        
             
         # Similar tasks       
         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
