@@ -25,26 +25,24 @@ class TodoistFunctions:
             "Authorization": f"Bearer {self.api_token}"
         }
 
-    def getProjects(self):
+    def getProjects(self, to_dict = True):
         data = {
             "sync_token": "*",
             "resource_types": json.dumps(['projects'])
         }
         response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
         all_projects = response.json().get('projects', [])
+        if to_dict:
+            projects_dict_id={}
+            projects_dict_name={}
+            for project in all_projects:
+                projects_dict_id[project['id']]=project['name']
+                projects_dict_name[project['name']]=project['id']
+            return projects_dict_id, projects_dict_name
         return all_projects
 
-    def getProjectsDicts(self, all_projects):
-        projects_dict_id={}
-        projects_dict_name={}
-        for project in all_projects:
-            projects_dict_id[project['id']]=project['name']
-            projects_dict_name[project['name']]=project['id']
-        return projects_dict_id, projects_dict_name
-
-    def getTasks(self):
-        active_projects = self.getProjects()
-        active_projects_ids, _ = self.getProjectsDicts(active_projects)
+    def getTasks(self, to_dict = True):
+        active_projects_ids, _ = self.getProjects()
         data = {
             "sync_token": "*",
             "resource_types": json.dumps(['items'])
@@ -52,17 +50,17 @@ class TodoistFunctions:
         response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
         all_tasks = response.json()["items"]
         active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
+        if to_dict:
+            projects_dict_id, _ = self.getProjects()
+            task_dict_id={}
+            task_dict_name={}
+            for task in all_tasks:
+                task_dict_name[task['content']]=[task['id'],projects_dict_id[task['project_id']]]
+                task_dict_id[task['id']]=[task['content'],projects_dict_id[task['project_id']]]
+            return task_dict_id, task_dict_name
         return active_tasks
 
-    def getTasksDicts(self, all_tasks, projects_dict_id, projects_dict_name):
-        task_dict_id={}
-        task_dict_name={}
-        for task in all_tasks:
-            task_dict_name[task['content']]=[task['id'],projects_dict_id[task['project_id']]]
-            task_dict_id[task['id']]=[task['content'],projects_dict_id[task['project_id']]]
-        return task_dict_id, task_dict_name
-
-    def getSections(self, project_id = None):
+    def getSections(self, to_dict = True, project_id = None):
         data = {
             "sync_token": "*",
             "resource_types": json.dumps(['sections'])
@@ -70,21 +68,26 @@ class TodoistFunctions:
         response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
         all_sections = response.json()["sections"]
         if project_id != None:
-            # print("he entrado")
-            return [section for section in all_sections if section.get('project_id') == project_id]
+            all_sections = [section for section in all_sections if section.get('project_id') == project_id]
+        if to_dict:
+            sections_dict_id={}
+            sections_dict_name={}
+            for section in all_sections:
+                sections_dict_id[section['id']]=section['name']
+                sections_dict_name[section['name']]=section['id']
+            return sections_dict_id, sections_dict_name
         return all_sections
 
-    def getSectionsDicts(self, all_sections):
-        sections_dict_id={}
-        sections_dict_name={}
-        for section in all_sections:
-            sections_dict_id[section['id']]=section['name']
-            sections_dict_name[section['name']]=section['id']
-        return sections_dict_id, sections_dict_name
-
     def getTask(self, id):
-        task = self.api.get_task(task_id = id)
+        task = self.api.get_task(task_id=id)
         return task
+
+    def createSection(self, name, project_id):
+        try:
+            section = self.api.add_section(name=name, project_id=project_id)
+            return section
+        except Exception as error:
+            return error
 
     def setReminder(self, task_id, minute_offset): 
         headers = {
@@ -123,6 +126,7 @@ class TodoistFunctions:
             print(f'No ha sido posible descompletar la tarea {id}')
 
     def moveTask(self, task_id, project_id, section_id = None, parent_id = None):
+        # Falta contemplar la seccion y el padre
         try:
             headers = {
                 "Authorization": f"Bearer {self.api_token}"
@@ -130,7 +134,7 @@ class TodoistFunctions:
             data = {
                 "commands": [{
                     "type": "item_move",
-                    "uuid": str(uuid.uuid4()),  # Genera un identificador único
+                    "uuid": str(uuid.uuid4()),
                     "args": {
                         "id": task_id,
                         "project_id": project_id
@@ -165,8 +169,7 @@ class TodoistFunctions:
         return 5 - n
 
     def getCompletedTasks(self, last_days=10):
-        active_projects = self.getProjects()
-        active_projects_ids, _ = self.getProjectsDicts(active_projects)
+        active_projects_ids, _ = self.getProjects()
         end_date = datetime.now() - timedelta(days=last_days)
         end_date_str = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         data = {
@@ -193,7 +196,7 @@ class AzureBlobFunctions:
         df = pd.read_csv(data)
         return df
 
-    def uploadCsvToBlob(self, df, blob_name):
+    def uploadCsvToBlob(self, df:pd.DataFrame, blob_name):
         blob_client = self.container_client.get_blob_client(blob_name)
         output = StringIO()
         df.to_csv(output, index=False)
