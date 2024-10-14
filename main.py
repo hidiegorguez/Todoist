@@ -205,10 +205,18 @@ def mainDiego():
             # Birthday labels
             if task['project_id'] == projects_dict_name['Cumpleaños'] and task['labels'] != ['Phone','Short']:
                 to_update = True
-                message = editTask(task_id=task['id'],
-                        labels=['Phone','Short'])
-                birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
-
+                try:
+                    month = task['due']['date'][5:7]
+                    day = task['due']['date'][8:10]
+                    message = editTask(task_id=task['id'],
+                                    due_string=f'cada {day} {month} 23:00',
+                                    labels=['Phone','Short'])
+                    tf.setReminder(task_id=task['id'],
+                                    minute_offset=1380)
+                    birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
+                except:
+                    birthday_msgs.append(f"Task '{task['content']}' probably does not have a proper due_string")
+                    
             # Suitcase task
             if 'Vacations' in task['labels'] and task['project_id'] == projects_dict_name['Calendario']:
                 title = task["content"]
@@ -242,14 +250,15 @@ def mainDiego():
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
                 
         # Counter task
-        counter_task = fun.getTask(8326227450)
+        counter_task_id = 8326227450
+        counter_task = tf.getTask(counter_task_id)
         if counter_task.is_completed:
-            print('task completed')
-            fun.uncompleteTask(8326227450)
-            editTask(task_id=8326227450,
+            print('Counter task completed')
+            tf.uncompleteTask(counter_task_id)
+            editTask(task_id=counter_task_id,
                      due_string="today at 6 am")
         else:
-            print('task uncompleted')        
+            print('Counter task uncompleted')        
             
         # Similar tasks       
         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
