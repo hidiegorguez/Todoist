@@ -213,7 +213,7 @@ def mainDiego():
                                     minute_offset=1380)
                     birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
                 except:
-                    birthday_msgs.append(f'Task "{task['content']}" probably does not have a proper due_string')
+                    birthday_msgs.append(f"Task '{task['content']}' probably does not have a proper due_string")
                     
             # Suitcase task
             if 'Vacations' in task['labels'] and task['project_id'] == projects_dict_name['Calendario']:
@@ -249,14 +249,14 @@ def mainDiego():
                 
         # Counter task
         counter_task_id = 8326227450
-        counter_task = fun.getTask(counter_task_id)
+        counter_task = tf.getTask(counter_task_id)
         if counter_task.is_completed:
-            print('task completed')
+            print('Counter task completed')
             tf.uncompleteTask(counter_task_id)
             editTask(task_id=counter_task_id,
                      due_string="today at 6 am")
         else:
-            print('task uncompleted')        
+            print('Counter task uncompleted')        
             
         # Similar tasks       
         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
