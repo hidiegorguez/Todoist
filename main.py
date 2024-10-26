@@ -367,14 +367,15 @@ def mainDiego():
         body += "\n" + runtime
         
         # Mail
-        fun.sendEmail("Daily Todoist", body, "diegorodgar17@gmail.com")
-
+        try:
+            fun.sendEmail("Daily Todoist", body, "diegorodgar17@gmail.com")
+        except:
+            pass
         return True
     
     except Exception as e:
         try:
             fun.sendEmail("Daily Todoist - Error", f"{messages[0]}\n\nThere was an error:\n- {e}", "diegorodgar17@gmail.com")
-            return False
         except Exception as e2:
             return f'Error {e}\n\nAnd error sending error mail: {e2}'
 
