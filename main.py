@@ -370,8 +370,8 @@ def mainDiego():
         try:
             fun.sendEmail("Daily Todoist", body, "diegorodgar17@gmail.com")
         except:
-            pass
-        return True
+            return body
+        return body
     
     except Exception as e:
         try:
