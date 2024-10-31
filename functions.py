@@ -13,6 +13,11 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 load_dotenv()
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+
 class TodoistFunctions:
     
     def __init__(self, api_token):
@@ -225,19 +230,26 @@ def getNextMonday():
     return closer_monday
 
 def sendEmail(subject, body, to):
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
-    msg['From'] = os.getenv('MAIL')
-    msg['To'] = to
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+    usuario = "diegorodgar17@gmail.com"
+    app_password = "mthu fsxe skvs rppi"  # La contraseña de aplicación de 16 caracteres
 
-    server = 'smtp-mail.outlook.com'
-    port = 587
+    # Configuración del mensaje
+    mensaje = MIMEMultipart()
+    mensaje["From"] = usuario
+    mensaje["To"] = to
+    mensaje["Subject"] = subject
+    cuerpo = body
+    mensaje.attach(MIMEText(cuerpo, "plain"))
 
-    username = os.getenv('MAIL')
-    password = os.getenv('PASSWORD')
-
-    with smtplib.SMTP(server, port) as smtp:
-        smtp.starttls()
-        smtp.login(username, password)
-        smtp.send_message(msg)
+    # Enviar el correo
+    try:
+        servidor = smtplib.SMTP(smtp_server, smtp_port)
+        servidor.starttls()
+        servidor.login(usuario, app_password)
+        servidor.sendmail(usuario, usuario, mensaje.as_string())
+        servidor.quit()
+        print("Correo enviado exitosamente.")
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
