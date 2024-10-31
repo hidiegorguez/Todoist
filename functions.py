@@ -13,31 +13,22 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 load_dotenv()
 
-import spacy
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-# def load_spacy_model():
-#     try:
-#         nlp = spacy.load("es_core_news_sm")
-#     except OSError:
-#         from spacy.cli import download
-#         download("es_core_news_sm")
-#         nlp = spacy.load("es_core_news_sm")
-#     return nlp
 
-# nlp = load_spacy_model()
-
-api_token = os.getenv("TODOIST_API_TOKEN")
-api = TodoistAPI(api_token)
-
-connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-blob_service_client = BlobServiceClient.from_connection_string(connect_str)
-container_client = blob_service_client.get_container_client('todoistcontainer')
-
-headers = {
-    "Content-Type": "application/json",
-    "X-Request-Id": "un_valor_único_por_cada_solicitud",
-    "Authorization": f"Bearer {api_token}"
-}
+class TodoistFunctions:
+    
+    def __init__(self, api_token):
+        self.api_token = api_token
+        self.api = TodoistAPI(api_token)
+        self.sync_url = "https://api.todoist.com/sync/v9/sync"
+        self.headers = {
+            "Content-Type": "application/json",
+            "X-Request-Id": str(uuid.uuid4()),
+            "Authorization": f"Bearer {self.api_token}"
+        }
 
 def getProjects():
     data = {
@@ -164,85 +155,26 @@ def getNextMonday():
     return closer_monday
 
 def sendEmail(subject, body, to):
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
-    msg['From'] = os.getenv('MAIL')
-    msg['To'] = to
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+    usuario = "diegorodgar17@gmail.com"
+    app_password = "mthu fsxe skvs rppi"  # La contraseña de aplicación de 16 caracteres
 
-    server = 'smtp-mail.outlook.com'
-    port = 587
+    # Configuración del mensaje
+    mensaje = MIMEMultipart()
+    mensaje["From"] = usuario
+    mensaje["To"] = to
+    mensaje["Subject"] = subject
+    cuerpo = body
+    mensaje.attach(MIMEText(cuerpo, "plain"))
 
-    username = os.getenv('MAIL')
-    password = os.getenv('PASSWORD')
-
-    with smtplib.SMTP(server, port) as smtp:
-        smtp.starttls()
-        smtp.login(username, password)
-        smtp.send_message(msg)
-        
-def jaccardCoef(cadena1, cadena2):
-    set_cadena1 = set(cadena1.split())
-    set_cadena2 = set(cadena2.split())
-
-    interseccion = len(set_cadena1.intersection(set_cadena2))
-    union = len(set_cadena1.union(set_cadena2))
-
-    coeficiente = interseccion / union
-    return coeficiente
-
-def areSimilar(cadena1, cadena2, umbral=0.5):
-    coeficiente = jaccardCoef(cadena1, cadena2)
-    if coeficiente >= umbral:
-        return f'{cadena1} & {cadena2}'
-
-def readCsvFromBlob(blob_name):
-    blob_client = container_client.get_blob_client(blob_name)
-    blob_data = blob_client.download_blob().readall()
-    data = StringIO(blob_data.decode('utf-8'))
-    df = pd.read_csv(data)
-    return df
-
-def uploadCsvToBlob(df, blob_name):
-    blob_client = container_client.get_blob_client(blob_name)
-    output = StringIO()
-    df.to_csv(output, index=False)
-    output.seek(0)
-    blob_client.upload_blob(output.getvalue(), overwrite=True)
-
-def getCompletedTasks(last_days=10):
-    active_projects = getProjects()
-    active_projects_ids, _ = getProjectsDicts(active_projects)
-    end_date = datetime.now() - timedelta(days=last_days)
-    end_date_str = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-    data = {
-        "sync_token": "*",
-        "resource_types": json.dumps(['items']),
-        "filters": json.dumps({"completed": "true", "until": end_date_str})
-    }
-    response = requests.post("https://api.todoist.com/sync/v9/completed/get_all", headers=headers, data=json.dumps(data))
-    all_completed_tasks = response.json()["items"]
-    completed_tasks = [task for task in all_completed_tasks if task['project_id'] in active_projects_ids]
-    return completed_tasks
-
-# def capitalizeProperNounsSpacy(text):
-#     doc = nlp(text)
-#     result = []
-#     capitalize_next = True
-#     for token in doc:
-#         if token.text.isupper():
-#             result.append(token.text)
-#         elif capitalize_next and token.is_alpha:
-#             result.append(token.text.capitalize())
-#             capitalize_next = False
-#         elif token.ent_type_ in ['PER', 'LOC', 'ORG', 'MISC', 'PROD', 'EVENT', 'WORK_OF_ART', 'LAW', 'LANGUAGE']:
-#             result.append(token.text.capitalize())
-#         elif token.text.lower() == "españa":
-#             result.append("España")
-#         else:
-#             result.append(token.text)
-#         if token.text in '.!?':
-#             capitalize_next = True
-#     final_text = ''.join([tok if tok in '.,;:!?()[]{}' else ' ' + tok for tok in result]).strip()
-#     return final_text
-
+    # Enviar el correo
+    try:
+        servidor = smtplib.SMTP(smtp_server, smtp_port)
+        servidor.starttls()
+        servidor.login(usuario, app_password)
+        servidor.sendmail(usuario, usuario, mensaje.as_string())
+        servidor.quit()
+        print("Correo enviado exitosamente.")
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
