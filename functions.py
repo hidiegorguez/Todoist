@@ -207,6 +207,15 @@ class AzureBlobFunctions:
         df.to_csv(output, index=False)
         output.seek(0)
         blob_client.upload_blob(output.getvalue(), overwrite=True)
+        
+    def list_blobs_in_container(self):
+        blob_list = self.container_client.list_blobs()
+        blobs = [blob.name for blob in blob_list]
+        return blobs
+    
+    def delete_blob(self, blob_name):
+        blob_client = self.container_client.get_blob_client(blob_name)
+        blob_client.delete_blob()
 
 def jaccardCoef(cadena1, cadena2):
     set_cadena1 = set(cadena1.split())
