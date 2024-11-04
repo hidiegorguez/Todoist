@@ -247,17 +247,14 @@ def mainDiego():
         if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
                 
-        # Counter task
-        counter_task_id = 8326227450
-        counter_task = tf.getTask(counter_task_id)
-        if counter_task.is_completed:
-            print('Counter task completed')
-            tf.uncompleteTask(counter_task_id)
-            editTask(task_id=counter_task_id,
-                     due_string="today at 6 am")
-        else:
-            print('Counter task uncompleted')        
-            
+        # Daily tasks: counter and bet
+        daily_task_ids = {8326227450: '6 am', 8554028033: '5 pm'}
+        for task_id, hour in daily_task_ids.items():
+            task = tf.getTask(task_id)
+            if task.is_completed:
+                tf.uncompleteTask(task_id)
+                editTask(task_id=task_id, due_string=f'today at {hour}')
+             
         # Similar tasks       
         similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
                                              projects_dict_name['Recordatorios'],
