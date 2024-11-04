@@ -241,8 +241,8 @@ def getNextMonday():
 def sendEmail(subject, body, to):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    usuario = "diegorodgar17@gmail.com"
-    app_password = "mthu fsxe skvs rppi"  # La contraseña de aplicación de 16 caracteres
+    usuario = os.getenv('ECLIPSE_EMAIL')
+    app_password = os.getenv('ECLIPSE_APP_PASSWORD')
 
     # Configuración del mensaje
     mensaje = MIMEMultipart()
@@ -257,7 +257,7 @@ def sendEmail(subject, body, to):
         servidor = smtplib.SMTP(smtp_server, smtp_port)
         servidor.starttls()
         servidor.login(usuario, app_password)
-        servidor.sendmail(usuario, usuario, mensaje.as_string())
+        servidor.sendmail(usuario, to, mensaje.as_string())
         servidor.quit()
         print("Correo enviado exitosamente.")
     except Exception as e:
