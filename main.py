@@ -176,6 +176,11 @@ def mainDiego():
         # Basic orders
         for task in all_tasks:
             
+            # Removing Work label from tasks in Work project
+            if task['project_id'] == projects_dict_name['Publicis'] and 'Work' in task['labels']:
+                task['labels'].remove('Work')
+                editTask(task_id=task['id'], labels=task['labels'])    
+            
             # Add duration
             if task['duration'] != None and task['due'] != None:
                 if tf.getDurationLabel(task['duration']['amount']) not in task['labels']:
