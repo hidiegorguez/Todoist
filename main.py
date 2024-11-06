@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
  
-def mainDiego():
+def mainDiego(address: str):
     try:
         
         start_time = time.time()
@@ -66,7 +66,7 @@ def mainDiego():
         def createTask(
             content = "Automatically created task",
             description = None,
-            project_id = projects_dict_name['Inbox'],
+            project_id = '2258455386',
             section_id = None,
             parent_id = None,
             order = 1,
@@ -177,7 +177,7 @@ def mainDiego():
         for task in all_tasks:
             
             # Removing Work label from tasks in Work project
-            if task['project_id'] == projects_dict_name['Publicis'] and 'Work' in task['labels']:
+            if task['project_id'] == '2316607649' and 'Work' in task['labels']:
                 task['labels'].remove('Work')
                 editTask(task_id=task['id'], labels=task['labels'])    
             
@@ -189,13 +189,13 @@ def mainDiego():
                     duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
             # Move out from the inbox
-            if task['project_id'] == projects_dict_name['Inbox']:
+            if task['project_id'] == '2258455386':
                 message = editTask(task_id=task['id'],
                                    content=task['content'][0].upper()+task['content'][1:],
                                    priority=3,
                                    due_string="today")
                 tf.moveTask(task_id=task['id'],
-                             project_id=projects_dict_name['Tareas'])
+                             project_id='2298494169')
                 inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
                 break
                 
@@ -206,7 +206,7 @@ def mainDiego():
                 capitalization_msgs.append('- '+message.split(' updated correctly to ')[-1])
                 
             # Birthday labels
-            if task['project_id'] == projects_dict_name['Cumpleaños'] and task['labels'] != ['Phone','Short']:
+            if task['project_id'] == '2259726698' and task['labels'] != ['Phone','Short']:
                 to_update = True
                 try:
                     month = task['due']['date'][5:7]
@@ -221,7 +221,7 @@ def mainDiego():
                     birthday_msgs.append(f"Task '{task['content']}' probably does not have a proper due_string")
                     
             # Suitcase task
-            if 'Vacations' in task['labels'] and task['project_id'] == projects_dict_name['Calendario']:
+            if 'Vacations' in task['labels'] and task['project_id'] == '2259406345':
                 title = task["content"]
                 try:
                     task_dict_name[f'Preparar maleta {title}']
@@ -232,11 +232,11 @@ def mainDiego():
                                             due_string=f"3 dias antes de {task['due']['date']}",
                                             priority=2,
                                             labels=['Long', 'Home'],
-                                            project_id=projects_dict_name['Recordatorios'])
+                                            project_id='2259406345')
                         suitcase_msgs.append("- "+message)
             
             # Expenses task
-            if 'Vacations' in task['labels'] and task['project_id'] == projects_dict_name['Calendario']:
+            if 'Vacations' in task['labels'] and task['project_id'] == '2259406345':
                 title = task["content"]
                 try:
                     task_dict_name[f'Apuntar gastos de {title}']
@@ -246,7 +246,7 @@ def mainDiego():
                                                 due_string=f"1 dia despues de {task['due']['string'][-10:]}",
                                                 priority=3,
                                                 labels=['Phone', 'PC', 'Long'],
-                                                project_id=projects_dict_name['Recordatorios'])
+                                                project_id='2258518194')
                         expenses_msgs.append("- "+message)
     
         if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
@@ -261,15 +261,15 @@ def mainDiego():
                 editTask(task_id=task_id, due_string=f'today at {hour}')
              
         # Similar tasks       
-        similars = similarTasks(project_ids=[projects_dict_name['Archivados'],
-                                             projects_dict_name['Recordatorios'],
-                                             projects_dict_name['Tareas'],
-                                             projects_dict_name['Calendario'],
-                                             projects_dict_name['Cursos'],
-                                             projects_dict_name['GitHub'],
-                                             projects_dict_name['Diarias'],
-                                             projects_dict_name['Semanales'],
-                                             projects_dict_name['Mensuales']],
+        similars = similarTasks(project_ids=['2263729931',
+                                             '2258518194',
+                                             '2298494169',
+                                             '2259406345',
+                                             '2303925714',
+                                             '2320233020',
+                                             '2259719762',
+                                             '2259719779',
+                                             '2259719838'],
                                 umbral=0.7)
         if similars != []:
             for similar in similars:
@@ -323,7 +323,7 @@ def mainDiego():
                     tf.uncompleteTask(task_id)
                     message = editTask(task_id=task_id,
                                         due_string="No date")
-                    if project_id == projects_dict_name["Calendario"]:
+                    if project_id == '2259406345':
                         tf.moveTask(task_id=task_id,
                                         project_id='2263729931')
                         message += ' and it was moved from "Calendario" to "Archivados"'
@@ -369,14 +369,14 @@ def mainDiego():
         
         # Mail
         try:
-            fun.sendEmail("Daily Todoist", body, "diegorodgar17@gmail.com")
+            fun.sendEmail("Daily Todoist", body, address)
         except:
             return body
         return body
     
     except Exception as e:
         try:
-            fun.sendEmail("Daily Todoist - Error", f"{messages[0]}\n\nThere was an error:\n- {e}", "diegorodgar17@gmail.com")
+            fun.sendEmail("Daily Todoist - Error", f"{messages[0]}\n\nThere was an error:\n- {e}", address)
         except Exception as e2:
             return f'Error {e}\n\nAnd error sending error mail: {e2}\n\n{body}'
 
