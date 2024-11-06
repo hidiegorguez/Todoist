@@ -119,16 +119,16 @@ class TodoistFunctions:
     def completeTask(self, id):
         try:
             self.api.close_task(id)
-            print(f'La tarea {id} se completó')
+            print(f'Task {id} is now completed')
         except:
-            print(f'No ha sido posible completar la tarea {id}')
+            print(f'Task {id} was not possible to complete')
             
     def uncompleteTask(self, id):
         try:
             self.api.reopen_task(id)
-            print(f'La tarea {id} está activa')
+            print(f'Task {id} is now uncompleted')
         except:
-            print(f'No ha sido posible descompletar la tarea {id}')
+            print(f'Task {id} was not possible to uncomplete')
 
     def moveTask(self, task_id, project_id, section_id = None, parent_id = None):
         # Falta contemplar la seccion y el padre
@@ -259,6 +259,6 @@ def sendEmail(subject, body, to):
         servidor.login(usuario, app_password)
         servidor.sendmail(usuario, to, mensaje.as_string())
         servidor.quit()
-        print("Correo enviado exitosamente.")
+        print("Email sent succesfully")
     except Exception as e:
-        print(f"Error al enviar el correo: {e}")
+        print(f"Error sending email: {e}")

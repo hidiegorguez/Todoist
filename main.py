@@ -64,7 +64,7 @@ def mainDiego():
 
         # Functions
         def createTask(
-            content = "Tarea creada automáticamente",
+            content = "Automatically created task",
             description = None,
             project_id = projects_dict_name['Inbox'],
             section_id = None,
@@ -83,7 +83,7 @@ def mainDiego():
         ):
             for label in labels:
                 if label not in label_names:
-                    return f'La etiqueta {label} no existe'
+                    return f'Label {label} does not exist'
             try:
                 task = api.add_task(
                     assignee_id = assignee_id,
@@ -124,7 +124,7 @@ def mainDiego():
             content = task.content if content == None else content
             for label in labels:
                 if label not in label_names:
-                    return f'La etiqueta {label} no existe'
+                    return f'Label {label} does not exist'
             if priority != None:
                 priority = tf.priorityInversal(priority)
             try:
@@ -342,7 +342,7 @@ def mainDiego():
                 try:
                     az.uploadCsvToBlob(df_permanenttasks, permanenttasks_route)
                 except:
-                    permanenttasks_msg.append("Error al guardar las tareas recurrentes")
+                    permanenttasks_msg.append("Error saving permanent tasks")
 
         # Results
         body = messages[0] + "\n"
