@@ -262,14 +262,14 @@ def mainDiego(address: str):
              
         # Similar tasks       
         similars = similarTasks(project_ids=['2263729931',
-                                             '2258518194',
-                                             '2298494169',
-                                             '2259406345',
-                                             '2303925714',
-                                             '2320233020',
-                                             '2259719762',
-                                             '2259719779',
-                                             '2259719838'],
+                                            '2258518194',
+                                            '2298494169',
+                                            '2259406345',
+                                            '2303925714',
+                                            '2320233020',
+                                            '2259719762',
+                                            '2259719779',
+                                            '2259719838'],
                                 umbral=0.7)
         if similars != []:
             for similar in similars:
@@ -305,7 +305,7 @@ def mainDiego(address: str):
         try:
             df_permanenttasks = az.readCsvFromBlob(permanenttasks_route)
         except Exception as e:
-            message = f'Error al cargar el csv de recurrentes del blob: {e}'
+            message = f'Error reading permanent tasks from blob: {e}'
             update_permanenttasksdiego = False
             permanenttasks_msg.append(message)
             
@@ -380,6 +380,5 @@ def mainDiego(address: str):
         except Exception as e2:
             return f'Error {e}\n\nAnd error sending error mail: {e2}\n\n{body}'
     
-    
 if __name__ == "__main__":
-    print(f'Diego execution: {mainDiego(address=os.getenv('DIEGO_MAIL'))}')
+    print(f'Diego execution: {mainDiego(address=os.getenv('DIEGO_EMAIL'))}')
