@@ -1,15 +1,22 @@
+# Git and version control related files
 .git*
 .vscode
+
+# Azure-specific local storage and settings files (not needed in production)
 __azurite_db*__.json
 __blobstorage__
 __queuestorage__
 local.settings.json
+.env
+
+# Development and test files
 test
 .venv
-.env
+deprueba.py
+README.md
+
+# Data and temporary files
 data
 .data
 src
 .src
-README.md
-deprueba.py
