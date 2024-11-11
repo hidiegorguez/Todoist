@@ -305,7 +305,7 @@ def mainDiego(address: str):
         try:
             df_permanenttasks = az.readCsvFromBlob(permanenttasks_route)
         except Exception as e:
-            message = f'Error al cargar el csv de recurrentes del blob: {e}'
+            message = f'Error reading permanent tasks from blob: {e}'
             update_permanenttasksdiego = False
             permanenttasks_msg.append(message)
             
@@ -379,24 +379,6 @@ def mainDiego(address: str):
             fun.sendEmail("Daily Todoist - Error", f"{messages[0]}\n\nThere was an error:\n- {e}", address)
         except Exception as e2:
             return f'Error {e}\n\nAnd error sending error mail: {e2}\n\n{body}'
-
-def mainToni():
-    try:
-        fun.sendEmail("Daily Todoist", f'...', 'asevillasastre@gmail.com')
-        return True
-    except Exception as e:
-        fun.sendEmail("Daily Todoist - Error", f'...', 'asevillasastre@gmail.com')
-        return e
-    
-def mainRetu():
-    try:
-        fun.sendEmail("Daily Todoist", f'...', 'marioretu00@gmail.com')
-        return True
-    except Exception as e:
-        fun.sendEmail("Daily Todoist - Error", f'...', 'marioretu00@gmail.com')
-        return e
     
 if __name__ == "__main__":
     print(f'Diego execution: {mainDiego()}')
-    # print(f'Toni execution: {mainToni()}')
-    # print(f'Retu execution: {mainRetu()}')
