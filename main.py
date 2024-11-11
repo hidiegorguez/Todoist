@@ -326,7 +326,7 @@ def mainDiego(address: str):
                     if project_id == '2259406345':
                         tf.moveTask(task_id=task_id,
                                         project_id='2263729931')
-                        message += ' and it was moved from "Calendario" to "Archivados"'
+                        message += f' and it was moved from {projects_dict_id['2259406345']} to {projects_dict_id['2263729931']}'
                     permanenttasks_msg.append("- " + message)
                 
             if to_update or df_permanenttasks.shape[0] < 10:
