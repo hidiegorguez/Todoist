@@ -312,14 +312,12 @@ def mainDiego(address: str):
         if update_permanenttasksdiego:
             permanenttasks = df_permanenttasks.set_index('task_id')['project_id'].to_dict()
             permanenttasks = {str(k): str(v) for k, v in permanenttasks.items()}
-            to_update = False
             
             completed_tasks = tf.getCompletedTasks(3)
             for task in completed_tasks:
                 task_id = task['task_id']
                 project_id = task['project_id']
                 if task_id in permanenttasks.keys() and task_id not in task_dict_id:
-                    to_update = True
                     tf.uncompleteTask(task_id)
                     message = editTask(task_id=task_id,
                                         due_string="No date")
@@ -329,20 +327,18 @@ def mainDiego(address: str):
                         message += f' and it was moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
                     permanenttasks_msg.append("- " + message)
                 
-            if to_update or df_permanenttasks.shape[0] < 10:
-                
-                all_tasks, task_dict_id, task_dict_name = refreshTasks()
+            all_tasks, task_dict_id, task_dict_name = refreshTasks()
 
-                tasks = api.get_tasks()
-                permanenttasks={}
-                for task in tasks:
-                    if 'Permanent' in task.labels:
-                        permanenttasks[task.id]=task.project_id
-                df_permanenttasks = pd.DataFrame.from_dict({'task_id':permanenttasks.keys(),'project_id':permanenttasks.values()})       
-                try:
-                    az.uploadCsvToBlob(df_permanenttasks, permanenttasks_route)
-                except:
-                    permanenttasks_msg.append("Error saving permanent tasks")
+            tasks = api.get_tasks()
+            permanenttasks={}
+            for task in tasks:
+                if 'Permanent' in task.labels:
+                    permanenttasks[task.id]=task.project_id
+            df_permanenttasks = pd.DataFrame.from_dict({'task_id':permanenttasks.keys(),'project_id':permanenttasks.values()})       
+            try:
+                az.uploadCsvToBlob(df_permanenttasks, permanenttasks_route)
+            except:
+                permanenttasks_msg.append("Error saving permanent tasks")
 
         # Results
         body = messages[0] + "\n"
