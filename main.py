@@ -326,7 +326,7 @@ def mainDiego(address: str):
                     if project_id == '2259406345':
                         tf.moveTask(task_id=task_id,
                                         project_id='2263729931')
-                        message += f' and it was moved from {projects_dict_id['2259406345']} to {projects_dict_id['2263729931']}'
+                        message += f' and it was moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
                     permanenttasks_msg.append("- " + message)
                 
             if to_update or df_permanenttasks.shape[0] < 10:
@@ -381,4 +381,4 @@ def mainDiego(address: str):
             return f'Error {e}\n\nAnd error sending error mail: {e2}\n\n{body}'
     
 if __name__ == "__main__":
-    print(f'Diego execution: {mainDiego(address=os.getenv('DIEGO_EMAIL'))}')
+    print(f'Diego execution: {mainDiego(address=os.getenv("DIEGO_EMAIL"))}')
