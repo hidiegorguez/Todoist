@@ -119,7 +119,6 @@ bin/
 obj/
 appsettings.json
 local.settings.json
-host.json
 
 # Azurite - local Azure Storage emulator artifacts
 __blobstorage__
@@ -127,7 +126,6 @@ __queuestorage__
 __azurite_db*__.json
 .python_packages
 
-# Project-specific files (Diego's project)
+# Project-specific files
 toDoLigaPistacho.ipynb      
 .vscode
-function_app.py
