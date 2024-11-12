@@ -372,9 +372,16 @@ def mainDiego(address: str):
     
     except Exception as e:
         try:
-            fun.sendEmail("Daily Todoist - Error", f"{messages[0]}\n\nThere was an error:\n- {e}", address)
+            tb = e.__traceback__
+            while tb.tb_next:
+                tb = tb.tb_next
+            line = tb.tb_lineno
+            file = tb.tb_frame.f_code.co_filename
+            error_msg = f"Error in {file}, line {line}:\n {e}"
+            fun.sendEmail("Daily Todoist - Error", error_msg, address)
+            return error_msg
         except Exception as e2:
-            return f'Error {e}\n\nAnd error sending error mail: {e2}\n\n{body}'
+            return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
     
 if __name__ == "__main__":
     print(f'Diego execution: {mainDiego(address=os.getenv("DIEGO_EMAIL"))}')
