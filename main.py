@@ -366,9 +366,10 @@ def mainDiego(address: str):
         # Mail
         try:
             fun.sendEmail("Daily Todoist", body, address)
+            return f'{body}\n\nAnd mail sent correctly'
+        
         except Exception as e:
-            return f'{body}\n\nAnd error sending mail: {e2}'
-        return body
+            return f'{body}\n\nAnd error sending mail: {e}'
     
     except Exception as e:
         try:
