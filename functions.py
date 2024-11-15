@@ -131,7 +131,7 @@ class TodoistFunctions:
             print(f'Task {id} was not possible to uncomplete')
 
     def moveTask(self, task_id, project_id, section_id = None, parent_id = None):
-        # Falta contemplar la seccion y el padre
+        # Yet to check section and father task
         try:
             headers = {
                 "Authorization": f"Bearer {self.api_token}"
@@ -244,7 +244,6 @@ def sendEmail(subject, body, to):
     usuario = os.getenv('ECLIPSE_EMAIL')
     app_password = os.getenv('ECLIPSE_APP_PASSWORD')
 
-    # Configuración del mensaje
     mensaje = MIMEMultipart()
     mensaje["From"] = usuario
     mensaje["To"] = to
@@ -252,7 +251,6 @@ def sendEmail(subject, body, to):
     cuerpo = body
     mensaje.attach(MIMEText(cuerpo, "plain"))
 
-    # Enviar el correo
     try:
         servidor = smtplib.SMTP(smtp_server, smtp_port)
         servidor.starttls()
@@ -262,3 +260,4 @@ def sendEmail(subject, body, to):
         print("Email sent succesfully")
     except Exception as e:
         print(f"Error sending email: {e}")
+        raise e
