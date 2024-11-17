@@ -365,11 +365,17 @@ def mainDiego(address: str):
         
         # Mail
         try:
-            fun.sendEmail("Daily Todoist", body, address)
+            fun.sendEmail(subject="Daily Todoist", body=body, to=address)
             return f'{body}\n\nAnd mail sent correctly'
         
         except Exception as e:
-            return f'{body}\n\nAnd error sending mail: {e}'
+            tb = e.__traceback__
+            while tb.tb_next:
+                tb = tb.tb_next
+            line = tb.tb_lineno
+            file = tb.tb_frame.f_code.co_filename
+            error_msg = f"Error in {file}, line {line}:\n {e}"
+            return f'{body}\n\nAnd error sending mail: {error_msg}'
     
     except Exception as e:
         try:
