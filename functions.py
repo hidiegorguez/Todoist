@@ -261,3 +261,11 @@ def sendEmail(subject, body, to):
     except Exception as e:
         print(f"Error sending email: {e}")
         raise e
+
+def buildExceptionMsg(e: Exception):
+    tb = e.__traceback__
+    while tb.tb_next:
+        tb = tb.tb_next
+    line = tb.tb_lineno
+    file = tb.tb_frame.f_code.co_filename
+    return f"Error in {file}, line {line}:\n {e}"

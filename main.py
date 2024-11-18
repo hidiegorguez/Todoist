@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
  
-def mainDiego(address: str):
+def TodoistDaily(address: str):
     try:
         
         start_time = time.time()
@@ -47,13 +47,12 @@ def mainDiego(address: str):
             return False
         
         # Projects, sections and tasks
-        projects_dict_id, projects_dict_name = tf.getProjects()
+        projects_dict_id, _ = tf.getProjects()
         def refreshTasks():
             all_tasks = tf.getTasks(to_dict=False)
             task_dict_id, task_dict_name = tf.getTasks()
             return all_tasks, task_dict_id, task_dict_name
         all_tasks, task_dict_id, task_dict_name = refreshTasks()
-        sections_dict_id, sections_dict_name = tf.getSections()
         label_names=[]
         for task in all_tasks:
             gross_labels=task['labels']
@@ -63,99 +62,13 @@ def mainDiego(address: str):
         label_names
 
         # Functions
-        def createTask(
-            content = "Automatically created task",
-            description = None,
-            project_id = '2258455386',
-            section_id = None,
-            parent_id = None,
-            order = 1,
-            labels = [],
-            priority = 1,
-            comment_count = 0,
-            due_string = None,
-            due_date = None,
-            due_datetime = None,
-            due_lang = None,
-            assignee_id = None,
-            duration = None,
-            duration_unit = None
-        ):
-            for label in labels:
-                if label not in label_names:
-                    return f'Label {label} does not exist'
-            try:
-                task = api.add_task(
-                    assignee_id = assignee_id,
-                    comment_count = comment_count,
-                    content = content,
-                    description = description,
-                    due_string = due_string,
-                    due_date = due_date,
-                    due_datetime = due_datetime,
-                    due_lang = due_lang,
-                    duration = duration,
-                    labels = labels,
-                    order = order,
-                    priority = tf.priorityInversal(priority),
-                    project_id = project_id,
-                    section_id = section_id,
-                    parent_id = parent_id,
-                    duration_unit = duration_unit
-                )
-                message = f'Task "{task.content}" ({task.id}) was created correctly'
-                return message
-            except Exception as error:
-                print (error)
-                return error
-        def editTask(
-            task_id,
-            content = None,
-            assignee_id = None,
-            description = None,
-            due_date = None,
-            due_string = None,
-            due_datetime = None,
-            labels = None,
-            priority = None,
-        ):
-            task = api.get_task(task_id)
-            labels = task.labels if labels == None else labels
-            content = task.content if content == None else content
-            for label in labels:
-                if label not in label_names:
-                    return f'Label {label} does not exist'
-            if priority != None:
-                priority = tf.priorityInversal(priority)
-            try:
-                api.update_task(
-                    task_id = task_id,
-                    assignee_id = assignee_id,
-                    content = content,
-                    description = description,
-                    labels = labels,
-                    priority = priority,
-                    due_date = due_date,
-                    due_string = due_string,
-                    due_datetime = due_datetime,
-                )
-                message = f'Task {task.content} updated correctly to {content}'
-                return message
-            except Exception as error:
-                return error
-        def createSection(name, project_id):
-            try:
-                section = api.add_section(name=name, project_id=project_id)
-                return section
-            except Exception as error:
-                return error
         def updateTaskDurationLabel(task_id, task_duration):
             duration_label = tf.getDurationLabel(task_duration)
             task_id = task_id[0]
             task_labels_without_duration = tf.getLabelsWithoutDuration(task_id)
             task_labels_without_duration.append(duration_label)
-            return editTask(task_id=task_id,
-                    labels=task_labels_without_duration)
+            api.update_task(task_id=task_id,
+                            labels=task_labels_without_duration)
         def similarTasks(project_ids, umbral=0.5):
             project_tasks = []
             similars = []
@@ -179,21 +92,23 @@ def mainDiego(address: str):
             # Removing Work label from tasks in Work project
             if task['project_id'] == '2316607649' and 'Work' in task['labels']:
                 task['labels'].remove('Work')
-                editTask(task_id=task['id'], labels=task['labels'])    
+                api.update_task(task_id=task['id'], labels=task['labels'])    
             
             # Add duration
             if task['duration'] != None and task['due'] != None:
                 if tf.getDurationLabel(task['duration']['amount']) not in task['labels']:
-                    message = updateTaskDurationLabel([task['id']],
+                    updateTaskDurationLabel([task['id']],
                                                       task['duration']['amount'])
+                    message = f'{task["content"]}'
                     duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
             # Move out from the inbox
             if task['project_id'] == '2258455386':
-                message = editTask(task_id=task['id'],
-                                   content=task['content'][0].upper()+task['content'][1:],
-                                   priority=3,
-                                   due_string="today")
+                api.update_task(task_id=task['id'],
+                                content=task['content'][0].upper()+task['content'][1:],
+                                priority=tf.priorityInversal(3),
+                                due_string="today")
+                message = f'Task "{task["content"]}" moved out from the inbox'
                 tf.moveTask(task_id=task['id'],
                              project_id='2298494169')
                 inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
@@ -201,19 +116,20 @@ def mainDiego(address: str):
                 
             # Capitalize title
             if task["content"][0].upper() != task["content"][0]:
-                message = editTask(task_id=task['id'],
-                                   content=task['content'][0].upper()+task['content'][1:])
+                message = api.update_task(task_id=task['id'],
+                                          content=task['content'][0].upper()+task['content'][1:])
+                message = f'{task["content"]}'
                 capitalization_msgs.append('- '+message.split(' updated correctly to ')[-1])
                 
             # Birthday labels
             if task['project_id'] == '2259726698' and task['labels'] != ['Phone','Short']:
-                to_update = True
                 try:
                     month = task['due']['date'][5:7]
                     day = task['due']['date'][8:10]
-                    message = editTask(task_id=task['id'],
+                    api.update_task(task_id=task['id'],
                                     due_string=f'cada {day} {month} 23:00',
                                     labels=['Phone','Short'])
+                    message = f'{task["content"]}'
                     tf.setReminder(task_id=task['id'],
                                     minute_offset=1380)
                     birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
@@ -228,11 +144,12 @@ def mainDiego(address: str):
                 except:
                     vacation_day = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
                     if vacation_day > today + timedelta(days=3):
-                        message = createTask(content=f'Preparar maleta {title}',
-                                            due_string=f"3 dias antes de {task['due']['date']}",
-                                            priority=2,
-                                            labels=['Long', 'Home'],
-                                            project_id='2259406345')
+                        task = api.add_task(content=f'Preparar maleta {title}',
+                                                due_string=f"3 dias antes de {task['due']['date']}",
+                                                priority=tf.priorityInversal(2), #orange
+                                                labels=['Long', 'Home'],
+                                                project_id='2259406345')
+                        message = f'Task "{task["content"]}" created succesfully'
                         suitcase_msgs.append("- "+message)
             
             # Expenses task
@@ -242,23 +159,23 @@ def mainDiego(address: str):
                     task_dict_name[f'Apuntar gastos de {title}']
                 except:
                     if task['due']['string'][-14:-8] == "fin 20":        
-                        message = createTask(content=f'Apuntar gastos de {title}',
-                                                due_string=f"1 dia despues de {task['due']['string'][-10:]}",
-                                                priority=3,
-                                                labels=['Phone', 'PC', 'Long'],
-                                                project_id='2258518194')
+                        task = api.add_task(content=f'Apuntar gastos de {title}',
+                                               due_string=f"1 dia despues de {task['due']['string'][-10:]}",
+                                               priority=tf.priorityInversal(3), #blue
+                                               labels=['Phone', 'PC', 'Long'],
+                                               project_id='2258518194')
+                        message = f'Task "{task["content"]}" created succesfully'
                         expenses_msgs.append("- "+message)
     
         if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
                 
-        # Daily tasks: counter and bet
-        daily_task_ids = {8326227450: '6 am', 8554028033: '5 pm'}
-        for task_id, hour in daily_task_ids.items():
-            task = tf.getTask(task_id)
-            if task.is_completed:
-                tf.uncompleteTask(task_id)
-                editTask(task_id=task_id, due_string=f'today at {hour}')
+        # Counter task
+        task_id = 8326227450
+        task = tf.getTask(task_id)
+        if task.is_completed:
+            tf.uncompleteTask(task_id)
+            api.update_task(task_id=task_id, due_string=f'today at 6 am')
              
         # Similar tasks       
         similars = similarTasks(project_ids=['2263729931',
@@ -279,7 +196,7 @@ def mainDiego(address: str):
         evaluate = True
         if tf.getTask('4632052423').is_completed == True:
             tf.uncompleteTask('4632052423')
-            editTask('4632052423', due_string='every friday 20:00')
+            api.update_task(task_id='4632052423', due_string='every friday 20:00')
             message = 'Fantasy task moved back to weekends'
             fantasy_msg.append(message)
             evaluate = False
@@ -293,7 +210,7 @@ def mainDiego(address: str):
                             if fantasydate > matchday > fun.getNextMonday():
                                 message = 'Fantasy task moved to Tuesday'
                                 fantasy_msg.append(message) 
-                                editTask('4632052423', due_string="Tuesday")
+                                api.update_task(task_id='4632052423', due_string="Tuesday")
                                 all_tasks, task_dict_id, task_dict_name = refreshTasks()
                                 break
                         except TypeError:
@@ -319,8 +236,8 @@ def mainDiego(address: str):
                 project_id = task['project_id']
                 if task_id in permanenttasks.keys() and task_id not in task_dict_id:
                     tf.uncompleteTask(task_id)
-                    message = editTask(task_id=task_id,
-                                        due_string="No date")
+                    message = api.update_task(task_id=task_id,
+                                              due_string="No date")
                     if project_id == '2259406345':
                         tf.moveTask(task_id=task_id,
                                         project_id='2263729931')
@@ -369,26 +286,43 @@ def mainDiego(address: str):
             return f'{body}\n\nAnd mail sent correctly'
         
         except Exception as e:
-            tb = e.__traceback__
-            while tb.tb_next:
-                tb = tb.tb_next
-            line = tb.tb_lineno
-            file = tb.tb_frame.f_code.co_filename
-            error_msg = f"Error in {file}, line {line}:\n {e}"
+            error_msg = fun.buildExceptionMsg(e)
             return f'{body}\n\nAnd error sending mail: {error_msg}'
     
     except Exception as e:
         try:
-            tb = e.__traceback__
-            while tb.tb_next:
-                tb = tb.tb_next
-            line = tb.tb_lineno
-            file = tb.tb_frame.f_code.co_filename
-            error_msg = f"Error in {file}, line {line}:\n {e}"
+            error_msg = fun.buildExceptionMsg(e)
             fun.sendEmail("Daily Todoist - Error", error_msg, address)
             return error_msg
         except Exception as e2:
             return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
     
+    
+def TodoistSuperBet():
+        
+        try:
+            api_token = os.getenv("TODOIST_API_TOKEN")
+            tf = fun.TodoistFunctions(api_token)
+            api = TodoistAPI(api_token)
+            
+            task_id = 8554028033
+            task = tf.getTask(task_id)
+            if task.is_completed:
+                tf.uncompleteTask(task_id)
+                weekday = datetime.today().weekday()
+                if weekday in [0, 4]:
+                    api.update_task(task_id=task_id, due_string=f'today at 7 pm')
+                elif weekday in [1, 2, 3]:
+                    api.update_task(task_id=task_id, due_string=f'today at 5 pm')
+                elif weekday in [5, 6]:
+                    api.update_task(task_id=task_id, due_string=f'today at 1 pm')
+                tf.setReminder(task_id=task_id, minute_offset=0)
+            return True
+        
+        except Exception as e:
+            error_msg = fun.buildExceptionMsg(e)
+            return error_msg
+    
 if __name__ == "__main__":
-    print(f'Diego execution: {mainDiego(address=os.getenv("DIEGO_EMAIL"))}')
+    print(f'DailyTodoist execution: {TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
+    print(f'TodoistSuperBet execution: {TodoistSuperBet()}')
