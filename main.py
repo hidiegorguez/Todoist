@@ -45,10 +45,7 @@ class MainDiego:
             
             # Azure Blob
             connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-            try:
-                az = fun.AzureBlobFunctions(connect_str)
-            except Exception as e:
-                return False
+            az = fun.AzureBlobFunctions(connect_str)
             
             # Projects, sections and tasks
             projects_dict_id, _ = self.tf.getProjects()
@@ -300,8 +297,7 @@ class MainDiego:
                 return error_msg
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
-        
-        
+               
     def TodoistSuperBet(self):
             try:
                 task_id = 8554028033
@@ -321,6 +317,54 @@ class MainDiego:
                 error_msg = fun.buildExceptionMsg(e)
                 return error_msg
     
+    def TodoistLigaPistachoToDo(self, address):
+        try:
+            # Azure Blob
+            connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+            az = fun.AzureBlobFunctions(connect_str)
+            
+            # Projects, sections and tasks
+            projects_dict_id, _ = self.tf.getProjects()
+            def refreshTasks():
+                all_tasks = self.tf.getTasks(to_dict=False)
+                task_dict_id, task_dict_name = self.tf.getTasks()
+                return all_tasks, task_dict_id, task_dict_name
+            all_tasks, _, task_dict_name = refreshTasks()
+            label_names=[]
+            for task in all_tasks:
+                gross_labels=task['labels']
+                for label in gross_labels:
+                    if label not in label_names:
+                        label_names.append(label)
+            label_names
+            
+            # Data mining
+            todo_df = az.readCsvFromBlob('path')
+            
+            # Data structure
+            
+            # Logic and creating task
+            task_names = todo_df['name'].values
+            for task_name in task_names:
+                if task_name in task_dict_name.keys():
+                    pass
+                else:
+                    self.api.add_task(content=task_name,
+                                      labels=todo_df[todo_df['name' == task_name]]['labels'].values[0].str.split(', '),
+                                      priority=self.tf.priorityInversal(3),
+                                      description=todo_df[todo_df['name' == task_name]]['link'].values[0],
+                                      project_id='2330796907')
+            return True
+            
+        
+        except Exception as e:
+            try:
+                error_msg = fun.buildExceptionMsg(e)
+                fun.sendEmail("Todo Liga Pistacho - Error", error_msg, address)
+                return error_msg
+            except Exception as e2:
+                return f'{error_msg}\n\nAnd error sending error mail: {e2}'
+        
 if __name__ == "__main__":
     main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
     print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
