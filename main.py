@@ -13,6 +13,7 @@ load_dotenv()
 
 today = datetime.today()
 weekday = today.weekday()
+hour = today.hour
 
 class MainDiego:
     
@@ -304,11 +305,11 @@ class MainDiego:
                 task = self.tf.getTask(task_id)
                 if task.is_completed:
                     self.tf.uncompleteTask(task_id)
-                    if weekday in [0, 4]:
+                    if weekday in [0, 4] and hour in [17, 18]:
                         self.api.update_task(task_id=task_id, due_string=f'today at 7 pm')
-                    elif weekday in [1, 2, 3]:
+                    elif weekday in [1, 2, 3] and hour in [15, 16]:
                         self.api.update_task(task_id=task_id, due_string=f'today at 5 pm')
-                    elif weekday in [5, 6]:
+                    elif weekday in [5, 6] and hour in [11, 12]:
                         self.api.update_task(task_id=task_id, due_string=f'today at 1 pm')
                     self.tf.setReminder(task_id=task_id, minute_offset=0)
                 return True
@@ -317,50 +318,65 @@ class MainDiego:
                 error_msg = fun.buildExceptionMsg(e)
                 return error_msg
     
-    def TodoistLigaPistachoToDo(self, address):
+    def TodoistToDoLP(self, address):
         try:
             # Azure Blob
             connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
             az = fun.AzureBlobFunctions(connect_str)
             
             # Projects, sections and tasks
-            projects_dict_id, _ = self.tf.getProjects()
             def refreshTasks():
                 all_tasks = self.tf.getTasks(to_dict=False)
                 task_dict_id, task_dict_name = self.tf.getTasks()
                 return all_tasks, task_dict_id, task_dict_name
-            all_tasks, _, task_dict_name = refreshTasks()
-            label_names=[]
-            for task in all_tasks:
-                gross_labels=task['labels']
-                for label in gross_labels:
-                    if label not in label_names:
-                        label_names.append(label)
-            label_names
             
-            # Data mining
-            todo_df = az.readCsvFromBlob('path')
+            _, _, task_dict_name = refreshTasks()
             
-            # Data structure
+            todo_df = az.readCsvFromBlob('todoligapistacho.csv')
             
-            # Logic and creating task
-            task_names = todo_df['name'].values
+            task_names = todo_df['Name'].values
+            created_tasks = []
+            edited_tasks = []
             for task_name in task_names:
-                if task_name in task_dict_name.keys():
-                    pass
+                task_name_cap = task_name.capitalize()
+                task_labels = todo_df[todo_df["Name"] == task_name]["Labels"].values[0].split(" / ")
+                task_description = todo_df[todo_df['Name'] == task_name]['Link'].values[0]
+                if task_name_cap in task_dict_name.keys():
+                    task_id = task_dict_name[task_name_cap][0]
+                    task = self.tf.getTask(id=task_id)
+                    if set(task_labels) != set(task.labels):
+                        print(f'Task {task_name_cap} has different labels. From {task.labels} to {task_labels}')
+                        self.api.update_task(task_id=task_id, labels=task_labels)
+                        edited_tasks.append(task_name_cap)
+                    else:
+                        print(f'Task {task_name_cap} already there')
                 else:
-                    self.api.add_task(content=task_name,
-                                      labels=todo_df[todo_df['name' == task_name]]['labels'].values[0].str.split(', '),
+                    self.api.add_task(content=task_name_cap,
+                                      labels=task_labels,
                                       priority=self.tf.priorityInversal(3),
-                                      description=todo_df[todo_df['name' == task_name]]['link'].values[0],
+                                      description=task_description,
                                       project_id='2330796907')
+                    created_tasks.append(task_name_cap)
+            body = ""
+            if created_tasks != []:
+                items = ""
+                for task in created_tasks:
+                    items += f'\n- {task}'
+                body += f'New tasks:\n {items}\n\n\n'
+            if edited_tasks != []:
+                items = ""
+                for task in edited_tasks:
+                    items += f'\n- {task}'
+                body += f'Updated tasks:\n {items}\n\n\n' 
+            if body == "":
+                body = 'No changes'
+            fun.sendEmail("Todoist ToDo LP", body, address)
             return True
             
-        
         except Exception as e:
             try:
                 error_msg = fun.buildExceptionMsg(e)
-                fun.sendEmail("Todo Liga Pistacho - Error", error_msg, address)
+                fun.sendEmail("Todoist ToDo LP - Error", error_msg, address)
                 return error_msg
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}'
@@ -369,3 +385,4 @@ if __name__ == "__main__":
     main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
     print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
     print(f'TodoistSuperBet execution: {main.TodoistSuperBet()}')
+    print(f'TodoistLigaPistachoToDo execution: {main.TodoistToDoLP(os.getenv("DIEGO_EMAIL"))}')
