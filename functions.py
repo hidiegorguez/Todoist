@@ -8,7 +8,6 @@ from azure.storage.blob import BlobServiceClient
 from io import StringIO
 import pandas as pd
 import os
-from email.message import EmailMessage
 
 from dotenv import load_dotenv
 load_dotenv()

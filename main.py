@@ -1,6 +1,5 @@
 import functions as fun
 from todoist_api_python.api import TodoistAPI
-from azure.storage.blob import BlobServiceClient
 
 from datetime import datetime, timedelta
 import pandas as pd
@@ -13,7 +12,6 @@ load_dotenv()
 
 today = datetime.today()
 weekday = today.weekday()
-hour = today.hour
 
 class MainDiego:
     
@@ -301,18 +299,26 @@ class MainDiego:
                
     def TodoistSuperBet(self):
             try:
+                edited = False
+                hour = today.hour
                 task_id = 8554028033
                 task = self.tf.getTask(task_id)
                 if task.is_completed:
-                    self.tf.uncompleteTask(task_id)
-                    if weekday in [0, 4] and hour in [17, 18]:
+                    if weekday in [0, 4] and hour == 18:
+                        self.tf.uncompleteTask(task_id)
                         self.api.update_task(task_id=task_id, due_string=f'today at 7 pm')
-                    elif weekday in [1, 2, 3] and hour in [15, 16]:
+                        edited = True
+                    elif weekday in [1, 2, 3] and hour == 16:
+                        self.tf.uncompleteTask(task_id)
                         self.api.update_task(task_id=task_id, due_string=f'today at 5 pm')
-                    elif weekday in [5, 6] and hour in [11, 12]:
+                        edited = True
+                    elif weekday in [5, 6] and hour == 12:
+                        self.tf.uncompleteTask(task_id)
                         self.api.update_task(task_id=task_id, due_string=f'today at 1 pm')
-                    self.tf.setReminder(task_id=task_id, minute_offset=0)
-                return True
+                        edited = True
+                    if edited:
+                        self.tf.setReminder(task_id=task_id, minute_offset=0)
+                return hour
             
             except Exception as e:
                 error_msg = fun.buildExceptionMsg(e)

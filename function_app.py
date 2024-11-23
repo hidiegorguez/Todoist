@@ -26,7 +26,7 @@ def TodoistSuperBet(myTimer: func.TimerRequest) -> None:
     logging.info(f'SuperBet execution: {respSuperBet}')
         
         
-@app.schedule(schedule="0 0 * * 1", arg_name="myTimer", use_monitor=False, run_on_startup=True)
+@app.schedule(schedule="0 0 * * 1", arg_name="myTimer", use_monitor=False)
 def TodoistToDoLP(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
