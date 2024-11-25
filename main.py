@@ -343,8 +343,9 @@ class MainDiego:
             created_tasks = []
             edited_tasks = []
             for task_name in task_names:
-                task_name_cap = task_name.capitalize()
+                task_name_cap = task_name.capitalize().rstrip()
                 task_labels = todo_df[todo_df["Name"] == task_name]["Labels"].values[0].split(" / ")
+                task_labels = [task.rstrip() for task in task_labels]
                 task_description = todo_df[todo_df['Name'] == task_name]['Link'].values[0]
                 if task_name_cap in task_dict_name.keys():
                     task_id = task_dict_name[task_name_cap][0]
