@@ -16,7 +16,5 @@ deprueba.py
 README.md
 
 # Data and temporary files
-data
-.data
-src
-.src
+media
+src 
