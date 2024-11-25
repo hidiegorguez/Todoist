@@ -2,6 +2,7 @@ import logging
 import azure.functions as func
 import main
 import os
+from datetime import datetime
 
 mainDiego = main.MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
 addressDiego = os.getenv('DIEGO_EMAIL')
@@ -22,7 +23,8 @@ def TodoistSuperBet(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
         
-    respSuperBet = mainDiego.TodoistSuperBet()
+    today = datetime.today()
+    respSuperBet = mainDiego.TodoistSuperBet(weekday=today.weekday(), hour=today.hour)
     logging.info(f'SuperBet execution: {respSuperBet}')
         
         

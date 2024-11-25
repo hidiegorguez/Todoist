@@ -297,32 +297,31 @@ class MainDiego:
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
                
-    def TodoistSuperBet(self):
-            try:
-                edited = False
-                hour = today.hour
-                task_id = 8554028033
-                task = self.tf.getTask(task_id)
-                if task.is_completed:
-                    if weekday in [0, 4] and hour == 18:
-                        self.tf.uncompleteTask(task_id)
-                        self.api.update_task(task_id=task_id, due_string=f'today at 7 pm')
-                        edited = True
-                    elif weekday in [1, 2, 3] and hour == 16:
-                        self.tf.uncompleteTask(task_id)
-                        self.api.update_task(task_id=task_id, due_string=f'today at 5 pm')
-                        edited = True
-                    elif weekday in [5, 6] and hour == 12:
-                        self.tf.uncompleteTask(task_id)
-                        self.api.update_task(task_id=task_id, due_string=f'today at 1 pm')
-                        edited = True
-                    if edited:
-                        self.tf.setReminder(task_id=task_id, minute_offset=0)
-                return hour
-            
-            except Exception as e:
-                error_msg = fun.buildExceptionMsg(e)
-                return error_msg
+    def TodoistSuperBet(self, weekday, hour = 0):
+        try:
+            edited = False
+            task_id = 8554028033
+            task = self.tf.getTask(task_id)
+            if task.is_completed:
+                if weekday in [0, 4] and hour in [16, 17]:
+                    self.tf.uncompleteTask(task_id)
+                    self.api.update_task(task_id=task_id, due_string=f'today at 7 pm')
+                    edited = True
+                elif weekday in [1, 2, 3] and hour in [14, 15]:
+                    self.tf.uncompleteTask(task_id)
+                    self.api.update_task(task_id=task_id, due_string=f'today at 5 pm')
+                    edited = True
+                elif weekday in [5, 6] and hour in [10, 11]:
+                    self.tf.uncompleteTask(task_id)
+                    self.api.update_task(task_id=task_id, due_string=f'today at 1 pm')
+                    edited = True
+                if edited:
+                    self.tf.setReminder(task_id=task_id, minute_offset=0)
+            return f'Execution completed, day {weekday}, hour {hour}'
+        
+        except Exception as e:
+            error_msg = fun.buildExceptionMsg(e)
+            return error_msg
     
     def TodoistToDoLP(self, address):
         try:
@@ -390,5 +389,5 @@ class MainDiego:
 if __name__ == "__main__":
     main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
     print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
-    print(f'TodoistSuperBet execution: {main.TodoistSuperBet()}')
+    print(f'TodoistSuperBet execution: {main.TodoistSuperBet(weekday=weekday, hour=today.hour)}')
     print(f'TodoistLigaPistachoToDo execution: {main.TodoistToDoLP(os.getenv("DIEGO_EMAIL"))}')
