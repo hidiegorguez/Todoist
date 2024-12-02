@@ -73,13 +73,13 @@ class MainDiego:
                 project_tasks = []
                 similars = []
                 for task in all_tasks:
-                    if task['project_id'] in project_ids:
+                    if task['project_id'] not in project_ids:
                         project_tasks.append(task['id'])
                 for i in range(len(project_tasks)-1):
                     for j in range(i+1,len(project_tasks)):
                         message = fun.areSimilar(task_dict_id[project_tasks[i]][0],
-                                                    task_dict_id[project_tasks[j]][0],
-                                                    umbral=umbral) 
+                                                 task_dict_id[project_tasks[j]][0],
+                                                 umbral=umbral) 
                         if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README':
                             similars.append(message)
                 return similars
@@ -178,15 +178,10 @@ class MainDiego:
                 self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
                 
             # Similar tasks       
-            similars = similarTasks(project_ids=['2263729931',
-                                                '2258518194',
-                                                '2298494169',
-                                                '2259406345',
-                                                '2303925714',
-                                                '2320233020',
-                                                '2259719762',
-                                                '2259719779',
-                                                '2259719838'],
+            similars = similarTasks(project_ids=['2259150181',
+                                                 '2269361803',
+                                                 '2259111397',
+                                                 '2332125933'],
                                     umbral=0.7)
             if similars != []:
                 for similar in similars:
