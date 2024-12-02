@@ -80,7 +80,7 @@ class MainDiego:
                         message = fun.areSimilar(task_dict_id[project_tasks[i]][0],
                                                  task_dict_id[project_tasks[j]][0],
                                                  umbral=umbral) 
-                        if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README':
+                        if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README' and message != 'Trabajo & Trabajo':
                             similars.append(message)
                 return similars
             
