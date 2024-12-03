@@ -231,12 +231,13 @@ class MainDiego:
                     project_id = task['project_id']
                     if task_id in permanenttasks.keys() and task_id not in task_dict_id:
                         self.tf.uncompleteTask(task_id)
-                        message = self.api.update_task(task_id=task_id,
-                                                due_string="No date")
+                        self.api.update_task(task_id=task_id,
+                                             due_string="No date")
+                        message = f'Task "{self.tf.getTask(id=task_id).content}" uncompleted'
                         if project_id == '2259406345':
                             self.tf.moveTask(task_id=task_id,
                                             project_id='2263729931')
-                            message += f' and it was moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
+                            message += f' and moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
                         permanenttasks_msg.append("- " + message)
                     
                 all_tasks, task_dict_id, task_dict_name = refreshTasks()
@@ -267,7 +268,7 @@ class MainDiego:
                 if permanenttasks_msg[0][:2] != "- ":
                     body += "\n" + f"{count}. " + permanenttasks_msg[0] + "\n"
                 else:
-                    body += "\n" + f"{count}. permanent task to uncomplete: \n"
+                    body += "\n" + f"{count}. Permanent task to uncomplete: \n"
                     for msg in permanenttasks_msg:
                         body += "  " + msg +"\n"
             if body == messages[0] + "\n":
