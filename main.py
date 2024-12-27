@@ -177,6 +177,13 @@ class MainDiego:
                 self.tf.uncompleteTask(task_id)
                 self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
                 
+            # Investment task
+            task_id = 8715203918
+            task = self.tf.getTask(task_id)
+            if task.is_completed and (weekday == 0 or today.day == 1):
+                self.tf.uncompleteTask(task_id)
+                self.api.update_task(task_id=task_id, due_string=f'today at 12 pm')
+                
             # Similar tasks       
             similars = similarTasks(project_ids=['2259150181',
                                                  '2269361803',
