@@ -360,15 +360,16 @@ class MainDiego:
                         print(f'Task {task_name_cap} has different labels. From {task.labels} to {task_labels}')
                         self.api.update_task(task_id=task_id, labels=task_labels)
                         edited_tasks.append(task_name_cap)
-                    else:
-                        print(f'Task {task_name_cap} already there')
+                    # else:
+                    #     print(f'Task {task_name_cap} already there')
                 else:
                     self.api.add_task(content=task_name_cap,
                                       labels=task_labels,
                                       priority=self.tf.priorityInversal(3),
                                       description=task_description,
                                       project_id='2330796907')
-                    created_tasks.append(task_name_cap)
+                    created_tasks.append(task_name_cap) 
+                    print(f'{task_name_cap} created')
             body = ""
             if created_tasks != []:
                 items = ""
@@ -395,6 +396,6 @@ class MainDiego:
         
 if __name__ == "__main__":
     main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-    print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
+    # print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
     # print(f'TodoistSuperBet execution: {main.TodoistSuperBet(weekday=weekday, hour=today.hour)}')
-    # print(f'TodoistLigaPistachoToDo execution: {main.TodoistToDoLP(os.getenv("DIEGO_EMAIL"))}')
+    print(f'TodoistLigaPistachoToDo execution: {main.TodoistToDoLP(os.getenv("DIEGO_EMAIL"))}')
