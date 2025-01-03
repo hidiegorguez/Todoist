@@ -183,6 +183,7 @@ class MainDiego:
             if task.is_completed and (weekday == 0 or today.day == 1):
                 self.tf.uncompleteTask(task_id)
                 self.api.update_task(task_id=task_id, due_string=f'today at 12 pm')
+                fun.sendEmail(subject="Todoist - Investment task", body=f'Investment task was created today\n\nDay of month = {today.day}\nDay of week = {weekday}', to=address)
                 
             # Similar tasks       
             similars = similarTasks(project_ids=['2259150181',
@@ -396,6 +397,6 @@ class MainDiego:
         
 if __name__ == "__main__":
     main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-    # print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
-    # print(f'TodoistSuperBet execution: {main.TodoistSuperBet(weekday=weekday, hour=today.hour)}')
+    print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
+    print(f'TodoistSuperBet execution: {main.TodoistSuperBet(weekday=weekday, hour=today.hour)}')
     print(f'TodoistLigaPistachoToDo execution: {main.TodoistToDoLP(os.getenv("DIEGO_EMAIL"))}')
