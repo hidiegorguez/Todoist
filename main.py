@@ -10,9 +10,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-today = datetime.today()
-weekday = today.weekday()
-
 class MainDiego:
     
     def __init__(self, todoist_api_token):
@@ -24,6 +21,8 @@ class MainDiego:
         try:
             
             start_time = time.time()
+            today = datetime.today()
+            weekday = today.weekday()
             messages = [f'Todoist Automation for {today.strftime("%Y-%m-%d")}']
             duration_msgs = []
             inbox_cleaning_msg = []
@@ -183,7 +182,6 @@ class MainDiego:
             if task.is_completed and (weekday == 0 or today.day == 1):
                 self.tf.uncompleteTask(task_id)
                 self.api.update_task(task_id=task_id, due_string=f'today at 12 pm')
-                fun.sendEmail(subject="Todoist - Investment task", body=f'Investment task was created today\n\nDay of month = {today.day}\nDay of week = {weekday}', to=address)
                 
             # Similar tasks       
             similars = similarTasks(project_ids=['2259150181',
@@ -306,6 +304,8 @@ class MainDiego:
                
     def TodoistSuperBet(self, weekday, hour = 0):
         try:
+            today = datetime.today()
+            weekday = today.weekday()
             edited = False
             task_id = 8554028033
             task = self.tf.getTask(task_id)
@@ -332,11 +332,9 @@ class MainDiego:
     
     def TodoistToDoLP(self, address):
         try:
-            # Azure Blob
             connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
             az = fun.AzureBlobFunctions(connect_str)
             
-            # Projects, sections and tasks
             def refreshTasks():
                 all_tasks = self.tf.getTasks(to_dict=False)
                 task_dict_id, task_dict_name = self.tf.getTasks()
