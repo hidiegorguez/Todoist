@@ -187,7 +187,8 @@ class MainDiego:
             similars = similarTasks(project_ids=['2259150181',
                                                  '2269361803',
                                                  '2259111397',
-                                                 '2332125933'],
+                                                 '2332125933',
+                                                 '2320233020'],
                                     umbral=0.7)
             if similars != []:
                 for similar in similars:
@@ -396,5 +397,5 @@ class MainDiego:
 if __name__ == "__main__":
     main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
     print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
-    print(f'TodoistSuperBet execution: {main.TodoistSuperBet(weekday=weekday, hour=today.hour)}')
+    print(f'TodoistSuperBet execution: {main.TodoistSuperBet(weekday=datetime.today().weekday(), hour=datetime.today().hour)}')
     print(f'TodoistLigaPistachoToDo execution: {main.TodoistToDoLP(os.getenv("DIEGO_EMAIL"))}')
