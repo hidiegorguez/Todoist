@@ -29,56 +29,75 @@ class TodoistFunctions:
             "Authorization": f"Bearer {self.api_token}"
         }
 
-    def getProjects(self, to_dict = True):
+    def getProjects(self, to_dict=True):
         data = {
             "sync_token": "*",
             "resource_types": json.dumps(['projects'])
         }
-        response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
-        all_projects = response.json().get('projects', [])
+        try:
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()  # Verifica errores HTTP
+            all_projects = response.json().get('projects', [])
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+
         if to_dict:
-            projects_dict_id={}
-            projects_dict_name={}
-            for project in all_projects:
-                projects_dict_id[project['id']]=project['name']
-                projects_dict_name[project['name']]=project['id']
+            projects_dict_id = {project['id']: project['name'] for project in all_projects}
+            projects_dict_name = {project['name']: project['id'] for project in all_projects}
             return projects_dict_id, projects_dict_name
         return all_projects
 
-    def getTasks(self, to_dict = True):
-        active_projects_ids, _ = self.getProjects()
-        data = {
-            "sync_token": "*",
-            "resource_types": json.dumps(['items'])
-        }
-        response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
-        all_tasks = response.json()["items"]
+    def getTasks(self, to_dict=True):
+        try:
+            active_projects_ids, _ = self.getProjects()
+            data = {
+                "sync_token": "*",
+                "resource_types": json.dumps(['items'])
+            }
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+            all_tasks = response.json().get("items", [])
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+
         active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
         if to_dict:
             projects_dict_id, _ = self.getProjects()
-            task_dict_id={}
-            task_dict_name={}
-            for task in all_tasks:
-                task_dict_name[task['content']]=[task['id'],projects_dict_id[task['project_id']]]
-                task_dict_id[task['id']]=[task['content'],projects_dict_id[task['project_id']]]
+            task_dict_id = {task['id']: [task['content'], projects_dict_id[task['project_id']]] for task in all_tasks}
+            task_dict_name = {task['content']: [task['id'], projects_dict_id[task['project_id']]] for task in all_tasks}
             return task_dict_id, task_dict_name
         return active_tasks
 
-    def getSections(self, to_dict = True, project_id = None):
+    def getSections(self, to_dict=True, project_id=None):
         data = {
             "sync_token": "*",
             "resource_types": json.dumps(['sections'])
         }
-        response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
-        all_sections = response.json()["sections"]
-        if project_id != None:
+        try:
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+            all_sections = response.json().get("sections", [])
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+
+        if project_id is not None:
             all_sections = [section for section in all_sections if section.get('project_id') == project_id]
+
         if to_dict:
-            sections_dict_id={}
-            sections_dict_name={}
-            for section in all_sections:
-                sections_dict_id[section['id']]=section['name']
-                sections_dict_name[section['name']]=section['id']
+            sections_dict_id = {section['id']: section['name'] for section in all_sections}
+            sections_dict_name = {section['name']: section['id'] for section in all_sections}
             return sections_dict_id, sections_dict_name
         return all_sections
 
@@ -129,7 +148,7 @@ class TodoistFunctions:
         except:
             print(f'Task {id} was not possible to uncomplete')
 
-    def moveTask(self, task_id, project_id, section_id = None, parent_id = None):
+    def moveTask(self, task_id, project_id, section_id=None, parent_id=None):
         # Yet to check section and father task
         try:
             headers = {
@@ -146,10 +165,14 @@ class TodoistFunctions:
                 }]
             }
             response = requests.post(self.sync_url, json=data, headers=headers)
+            response.raise_for_status()
             return response.json()
-        except Exception as error:
-            print('errrors')
-            return error
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}
 
     def getLabelsWithoutDuration(self, task_id):
         task = self.getTask(task_id)
