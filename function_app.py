@@ -24,8 +24,17 @@ def TodoistSuperBet(myTimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
         
     today = datetime.today()
-    respSuperBet = mainDiego.TodoistSuperBet(weekday=today.weekday(), hour=today.hour)
+    respSuperBet = mainDiego.TodoistSuperBet(hour=today.hour)
     logging.info(f'SuperBet execution: {respSuperBet}')
+    
+    
+@app.schedule(schedule="0 55 19 * * *", arg_name="myTimer", use_monitor=False) 
+def TodoistWhatsapp(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('The timer is past due!')
+        
+    respWhatsapp = mainDiego.TodoistWhatsapp()
+    logging.info(f'Whatsapp execution: {respWhatsapp}')
         
         
 @app.schedule(schedule="0 0 * * 1", arg_name="myTimer", use_monitor=False)

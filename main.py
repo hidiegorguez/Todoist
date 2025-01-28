@@ -303,7 +303,7 @@ class MainDiego:
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
                
-    def TodoistSuperBet(self, weekday, hour = 0):
+    def TodoistSuperBet(self, hour: int = 0):
         try:
             today = datetime.today()
             weekday = today.weekday()
@@ -326,6 +326,25 @@ class MainDiego:
                 if edited:
                     self.tf.setReminder(task_id=task_id, minute_offset=0)
             return f'Execution completed, day {weekday}, hour {hour}'
+        
+        except Exception as e:
+            error_msg = fun.buildExceptionMsg(e)
+            return error_msg
+        
+    def TodoistWhatsapp(self):
+        try:
+            today = datetime.today()
+            weekday = today.weekday()
+            task_id = 8821892607
+            task = self.tf.getTask(task_id)
+            if weekday in [2, 4, 6]:
+                if task.is_completed:
+                    self.tf.uncompleteTask(task_id)
+                    self.tf.setReminder(task_id=task_id, minute_offset=0)
+                else:
+                    self.api.update_task(task_id=task_id, due_string=f'today at 9 pm')
+                
+            return f'Execution completed, day {weekday}'
         
         except Exception as e:
             error_msg = fun.buildExceptionMsg(e)
