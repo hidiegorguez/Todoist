@@ -190,10 +190,20 @@ class MainDiego:
                                                  '2332125933',
                                                  '2320233020'],
                                     umbral=0.7)
+            if weekday == 0:
+                similars_blob = []
+            else:
+                similars_df = az.readCsvFromBlob(blob_name='similartasks/similartasksdiego.csv')
+                similars_blob = list(similars_df['similar'].values)
             if similars != []:
                 for similar in similars:
-                    similar_msgs.append(f'- {similar}')
-            
+                    if similar not in similars_blob:
+                        similar_msgs.append(f'- {similar}')
+                        similars_blob.append(similar)
+                similars_df = pd.DataFrame(similars, columns=["similar"])
+                az.uploadCsvToBlob(df=similars_df, blob_name='similartasks/similartasksdiego.csv')
+                
+
             # Fantasy
             evaluate = True
             if self.tf.getTask('4632052423').is_completed == True:
