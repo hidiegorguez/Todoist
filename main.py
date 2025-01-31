@@ -350,6 +350,7 @@ class MainDiego:
             if weekday in [2, 4, 6]:
                 if task.is_completed:
                     self.tf.uncompleteTask(task_id)
+                    self.api.update_task(task_id=task_id, due_string=f'today at 9 pm')
                     self.tf.setReminder(task_id=task_id, minute_offset=0)
                 else:
                     self.api.update_task(task_id=task_id, due_string=f'today at 9 pm')
