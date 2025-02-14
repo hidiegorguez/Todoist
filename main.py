@@ -470,7 +470,7 @@ class MainDiego:
                     return f'Task not created beacuse of weather: {data["weather"][0]["description"]}'
                     
             else:
-                print(f'Error getting data: {response.status_code}')
+                return f'Error getting data: {response.status_code}'
                 
         except Exception as e:
             error_msg = fun.buildExceptionMsg(e)
