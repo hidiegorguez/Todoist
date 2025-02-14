@@ -45,10 +45,10 @@ def TodoistToDoLP(myTimer: func.TimerRequest) -> None:
     respToDoLP = mainDiego.TodoistToDoLP(address=addressDiego)
     logging.info(f'ToDoLP execution: {respToDoLP}')
     
-# @app.schedule(schedule="0 55 13 * * *", arg_name="myTimer", use_monitor=False)
-# def TodoistWeather(myTimer: func.TimerRequest) -> None:
-#     if myTimer.past_due:
-#         logging.info('The timer is past due!')
+@app.schedule(schedule="0 55 13 * * *", arg_name="myTimer", use_monitor=False)
+def TodoistWeather(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('The timer is past due!')
         
-#     respWeather = mainDiego.TodoistWeather()
-#     logging.info(f'Weather execution: {respWeather}')
+    respWeather = mainDiego.TodoistWeather()
+    logging.info(f'Weather execution: {respWeather}')

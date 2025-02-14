@@ -426,61 +426,61 @@ class MainDiego:
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}'
  
-    # def TodoistWeather(self):
-    #     try:
-    #         all_tasks = self.tf.getTasks(to_dict=False)
-    #         task_id = 8841964065
-    #         task = self.tf.getTask(task_id)
+    def TodoistWeather(self):
+        try:
+            all_tasks = self.tf.getTasks(to_dict=False)
             
-    #         api_key = os.getenv('OPEN_WEATHER_API_KEY')
-    #         city_name = 'Colmenarejo'
-    #         base_url = 'http://api.openweathermap.org/data/2.5/weather'
-    #         full_url = f"{base_url}?q={city_name}&appid={api_key}&units=metric&lang=com"
-    #         response = requests.get(full_url)
+            api_key = os.getenv('OPEN_WEATHER_API_KEY')
+            city_name = 'Colmenarejo'
+            base_url = 'http://api.openweathermap.org/data/2.5/weather'
+            full_url = f"{base_url}?q={city_name}&appid={api_key}&units=metric&lang=com"
+            response = requests.get(full_url)
 
-    #         if response.status_code == 200:
-    #             data = response.json()
-    #             if data['weather'][0]['description'] == 'clear sky':
+            if response.status_code == 200:
+                data = response.json()
+                if data['weather'][0]['description'] in ['clear sky', 'few clouds', 'scattered clouds']:
                     
-    #                 today = datetime.today()
-    #                 today_str = today.strftime('%Y-%m-%d')
-    #                 sun_start = today.replace(hour=15, minute=30)
-    #                 sun_end = today.replace(hour=16, minute=0)
-    #                 for task in all_tasks:
-    #                     try:
-    #                         if 'Outside' in task['labels']:
-    #                             if f'{today_str}15:30' in task['due']['date'] and task['priority'] in [3, 4]:
-    #                                 return f'Task not created beacuse of time'
-    #                             elif today_str in task['due']['date'] and task['duration']['amount'] > 0 and task['priority'] in [3, 4]:
-    #                                 task_init = datetime.strptime(task['due']['date'], '%Y-%m-%dT%H:%M:%S')
-    #                                 task_end = task_init + timedelta(minutes=task['duration']['amount'])
-    #                                 if task_init < sun_end and task_end > sun_start:
-    #                                     return f'Task not created beacuse of time'
-    #                     except:
-    #                         pass
+                    today = datetime.today()
+                    today_str = today.strftime('%Y-%m-%d')
+                    sun_start = today.replace(hour=15, minute=30)
+                    sun_end = today.replace(hour=16, minute=0)
+                    for task in all_tasks:
+                        try:
+                            if 'Outside' in task['labels'] and today_str in task['due']['date'] and task['priority'] in [3, 4]:
+                                if '15:30' in task['due']['date']:
+                                    return f'Task not created beacuse of time'
+                                elif task['duration']['amount'] > 0:
+                                    task_init = datetime.strptime(task['due']['date'], '%Y-%m-%dT%H:%M:%S')
+                                    task_end = task_init + timedelta(minutes=task['duration']['amount'])
+                                    if task_init < sun_end and task_end > sun_start:
+                                        return f'Task not created beacuse of time'
+                        except:
+                            pass
                     
-    #                 if task.is_completed:
-    #                     self.tf.uncompleteTask(task_id)
-    #                 self.api.update_task(task_id=task_id, due_string=f'today at 15:30',  duration=30, duration_unit='minute')
-    #                 self.tf.setReminder(task_id=task_id, minute_offset=30)
+                    task_id = 8841964065
+                    task = self.tf.getTask(task_id)
+                    if task.is_completed:
+                        self.tf.uncompleteTask(task_id)
+                    self.api.update_task(task_id=task_id, due_string=f'today at 15:30',  duration=30, duration_unit='minute')
+                    self.tf.setReminder(task_id=task_id, minute_offset=30)
                     
-    #                 return f'Task created'
+                    return f'Task created'
                 
-    #             else:
-    #                 return f'Task not created beacuse of weather: {data['weather'][0]['description']}'
+                else:
+                    return f'Task not created beacuse of weather: {data["weather"][0]["description"]}'
                     
-    #         else:
-    #             print(f'Error getting data: {response.status_code}')
+            else:
+                print(f'Error getting data: {response.status_code}')
                 
-    #     except Exception as e:
-    #         error_msg = fun.buildExceptionMsg(e)
-    #         return error_msg
+        except Exception as e:
+            error_msg = fun.buildExceptionMsg(e)
+            return error_msg
 
                
 if __name__ == "__main__":
     main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-    print(f'DailyTodoist execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
-    print(f'TodoistSuperBet execution: {main.TodoistSuperBet(weekday=datetime.today().weekday(), hour=datetime.today().hour)}')
-    print(f'TodoistWhatsapp execution: {main.TodoistWhatsapp()}')
-    print(f'TodoistLigaPistachoToDo execution: {main.TodoistToDoLP(os.getenv("DIEGO_EMAIL"))}')
-    # print(f'TodoistWeather execution: {main.TodoistWeather()}')
+    print(f'Daily execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
+    print(f'SuperBet execution: {main.TodoistSuperBet(weekday=datetime.today().weekday(), hour=datetime.today().hour)}')
+    print(f'Whatsapp execution: {main.TodoistWhatsapp()}')
+    print(f'LigaPistachoToDo execution: {main.TodoistToDoLP(address=os.getenv("DIEGO_EMAIL"))}')
+    print(f'Weather execution: {main.TodoistWeather()}')
