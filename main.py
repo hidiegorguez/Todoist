@@ -146,11 +146,11 @@ class MainDiego:
                         vacation_day = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
                         if vacation_day > today + timedelta(days=3):
                             task = self.api.add_task(content=f'Preparar maleta {title}',
-                                                    due_string=f"3 dias antes de {task['due']['date']}",
-                                                    priority=self.tf.priorityInversal(2), #orange
-                                                    labels=['Long', 'Home'],
-                                                    project_id='2259406345')
-                            message = f'Task "{task["content"]}" created succesfully'
+                                                     due_string=f"3 dias antes de {task['due']['date']}",
+                                                     priority=self.tf.priorityInversal(2), #orange
+                                                     labels=['Long', 'Home'],
+                                                     project_id='2259406345')
+                            message = f'Task "{task.content}" created succesfully'
                             suitcase_msgs.append("- "+message)
                 
                 # Expenses task
@@ -161,11 +161,11 @@ class MainDiego:
                     except:
                         if task['due']['string'][-14:-8] == "fin 20":        
                             task = self.api.add_task(content=f'Apuntar gastos de {title}',
-                                                due_string=f"1 dia despues de {task['due']['string'][-10:]}",
-                                                priority=self.tf.priorityInversal(3), #blue
-                                                labels=['Phone', 'PC', 'Long'],
-                                                project_id='2258518194')
-                            message = f'Task "{task["content"]}" created succesfully'
+                                                     due_string=f"1 dia despues de {task['due']['string'][-10:]}",
+                                                     priority=self.tf.priorityInversal(3), #blue
+                                                     labels=['Phone', 'PC', 'Long'],
+                                                     project_id='2258518194')
+                            message = f'Task "{task.content}" created succesfully'
                             expenses_msgs.append("- "+message)
         
             if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
