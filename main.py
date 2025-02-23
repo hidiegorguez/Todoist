@@ -224,7 +224,7 @@ class MainDiego:
                                 if fantasydate > matchday > fun.getNextMonday():
                                     message = 'Fantasy task moved to Tuesday'
                                     fantasy_msg.append(message) 
-                                    self.api.update_task(task_id='4632052423', due_string="Tuesday")
+                                    self.api.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
                                     all_tasks, task_dict_id, task_dict_name = refreshTasks()
                                     break
                             except TypeError:
