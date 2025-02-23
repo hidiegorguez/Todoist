@@ -284,7 +284,7 @@ class MainDiego:
                         body += "  " + msg +"\n"
                     count += 1
             if fantasy_msg != []:
-                body += "\n" + f"{count}." + fantasy_msg[0] + "\n"
+                body += "\n" + f"{count}. " + fantasy_msg[0] + "\n"
             print(permanenttasks_msg)
             if permanenttasks_msg != []:
                 if permanenttasks_msg[0][:2] != "- ":
