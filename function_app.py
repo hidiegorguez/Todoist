@@ -18,7 +18,7 @@ def TodoistDaily(myTimer: func.TimerRequest) -> None:
     logging.info(f'Diego execution: {respDiego}')
     
     
-@app.schedule(schedule="0 55 11,15,17 * * *", arg_name="myTimer", use_monitor=False) 
+@app.schedule(schedule="0 55 10,14,16 * * *", arg_name="myTimer", use_monitor=False) 
 def TodoistSuperBet(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
@@ -28,7 +28,7 @@ def TodoistSuperBet(myTimer: func.TimerRequest) -> None:
     logging.info(f'SuperBet execution: {respSuperBet}')
     
     
-@app.schedule(schedule="0 55 19 * * *", arg_name="myTimer", use_monitor=False) 
+@app.schedule(schedule="0 55 18 * * *", arg_name="myTimer", use_monitor=False) 
 def TodoistWhatsapp(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
@@ -45,7 +45,7 @@ def TodoistToDoLP(myTimer: func.TimerRequest) -> None:
     respToDoLP = mainDiego.TodoistToDoLP(address=addressDiego)
     logging.info(f'ToDoLP execution: {respToDoLP}')
     
-@app.schedule(schedule="0 55 13 * * *", arg_name="myTimer", use_monitor=False)
+@app.schedule(schedule="0 55 12 * * *", arg_name="myTimer", use_monitor=False)
 def TodoistWeather(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
