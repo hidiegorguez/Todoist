@@ -441,6 +441,9 @@ class MainDiego:
                 if data['weather'][0]['description'] in ['clear sky', 'few clouds', 'scattered clouds']:
                     
                     today = datetime.today()
+                    month = today.month
+                    if month >= 6:
+                        return f'Not in date'
                     today_str = today.strftime('%Y-%m-%d')
                     sun_start = today.replace(hour=15, minute=30)
                     sun_end = today.replace(hour=16, minute=0)
