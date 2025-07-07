@@ -181,7 +181,8 @@ class MainDiego:
             # Investment task
             task_id = 8715203918
             task = self.tf.getTask(task_id)
-            if task.is_completed and (weekday == 0 or today.day == 1):
+            # if task.is_completed and (weekday == 0 or today.day == 1):
+            if task.is_completed and today.day == 1:
                 self.tf.uncompleteTask(task_id)
                 self.api.update_task(task_id=task_id, due_string=f'today at 12 pm')
                 
