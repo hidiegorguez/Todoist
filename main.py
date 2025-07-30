@@ -110,7 +110,12 @@ class MainDiego:
                                     priority=self.tf.priorityInversal(3),
                                     due_string="today")
                     message = f'Task "{task["content"]}" moved out from the inbox'
-                    self.tf.moveTask(task_id=task['id'],
+                    if 'work' in task['labels']:
+                        self.tf.moveTask(task_id=task['id'],
+                                project_id='2316607649',
+                                section_id='137240160')
+                    else:
+                        self.tf.moveTask(task_id=task['id'],
                                 project_id='2298494169')
                     inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
                     break
