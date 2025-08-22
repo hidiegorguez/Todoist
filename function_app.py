@@ -18,14 +18,14 @@ def TodoistDaily(myTimer: func.TimerRequest) -> None:
     logging.info(f'Diego execution: {respDiego}')
     
     
-# @app.schedule(schedule="0 55 10,14,16 * * *", arg_name="myTimer", use_monitor=False) 
-# def TodoistSuperBet(myTimer: func.TimerRequest) -> None:
-#     if myTimer.past_due:
-#         logging.info('The timer is past due!')
+@app.schedule(schedule="0 55 10,14,16 * * *", arg_name="myTimer", use_monitor=False) 
+def TodoistSuperBet(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('The timer is past due!')
         
-#     today = datetime.today()
-#     respSuperBet = mainDiego.TodoistSuperBet(hour=today.hour)
-#     logging.info(f'SuperBet execution: {respSuperBet}')
+    today = datetime.today()
+    respSuperBet = mainDiego.TodoistSuperBet(hour=today.hour)
+    logging.info(f'SuperBet execution: {respSuperBet}')
     
     
 @app.schedule(schedule="0 55 18 * * *", arg_name="myTimer", use_monitor=False) 
