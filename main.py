@@ -90,10 +90,13 @@ class MainDiego:
             # Basic orders
             for task in all_tasks:
                 
-                # Removing Work label from tasks in Work project
-                if task['project_id'] == '2316607649' and 'Work' in task['labels']:
+                # Removing Work label and moving to Work work task section
+                if 'Work' in task['labels']:
                     task['labels'].remove('Work')
-                    self.api.update_task(task_id=task['id'], labels=task['labels'])    
+                    if task['project_id'] == '2316607649':
+                        self.api.update_task(task_id=task['id'], labels=task['labels'])
+                    elif task['project_id'] == '2258455386':  
+                        self.api.update_task(task_id=task['id'], labels=task['labels'], project_id='2316607649', section_id='137240160')
                 
                 # Add duration
                 if task['duration'] != None and task['due'] != None:
@@ -110,13 +113,8 @@ class MainDiego:
                                     priority=self.tf.priorityInversal(3),
                                     due_string="today")
                     message = f'Task "{task["content"]}" moved out from the inbox'
-                    if 'work' in task['labels']:
-                        self.tf.moveTask(task_id=task['id'],
-                                project_id='2316607649',
-                                section_id='137240160')
-                    else:
-                        self.tf.moveTask(task_id=task['id'],
-                                project_id='2298494169')
+                    self.tf.moveTask(task_id=task['id'],
+                                     project_id='2298494169')
                     inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
                     break
                     
