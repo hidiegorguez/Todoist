@@ -134,6 +134,27 @@ class TodoistFunctions:
         
         return response.json()
 
+    def setDeadline(self, task_id, deadline: str):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_token}",
+        }
+        commands = [
+            {
+                "type": "item_update",
+                "uuid": str(uuid.uuid4()),
+                "args": {
+                    "id": task_id,
+                    "deadline": {
+                        "date": deadline
+                    }
+                }
+            }
+        ]
+        data = {"commands": commands}
+        response = requests.post(self.sync_url, headers=headers, json=data)
+        return response.json()
+
     def completeTask(self, id):
         try:
             self.api.close_task(id)

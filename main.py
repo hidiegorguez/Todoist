@@ -32,6 +32,7 @@ class MainDiego:
             birthday_msgs = []
             suitcase_msgs = []
             expenses_msgs = []
+            weekly_deadlines_msgs = []
             similar_msgs = []
             fantasy_msg = []
             permanenttasks_msg = []
@@ -41,6 +42,7 @@ class MainDiego:
                             f'Tasks to add birthday labels:': birthday_msgs,
                             f'New suitcase tasks:': suitcase_msgs,
                             f'New expenses tasks': expenses_msgs,
+                            f'Weekly deadlines updated:': weekly_deadlines_msgs,
                             f'Next tasks are similar:': similar_msgs}
             
             # Azure Blob
@@ -180,6 +182,17 @@ class MainDiego:
             if task.is_completed:
                 self.tf.uncompleteTask(task_id)
                 self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
+
+            # Weakly tasks
+            weakly_tasks_ids = ['9331340393', '8975486418']
+            for task_id in weakly_tasks_ids:
+                task = self.tf.getTask(task_id)
+                due = datetime.strptime(task.due.date, "%Y-%m-%d").date()
+                days_until_sunday = (6 - today.weekday()) % 7
+                next_sunday = due + timedelta(days=days_until_sunday)
+                if due != next_sunday:
+                    self.tf.setDeadline(task_id, next_sunday.strftime("%Y-%m-%d"))
+                    weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday.strftime("%Y-%m-%d")}')
                 
             # Investment task
             # task_id = 8715203918
