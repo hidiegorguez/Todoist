@@ -16,7 +16,74 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-
+class Task:
+    class Due:
+        date: str
+        is_recurring: bool 
+        lang: str
+        string: str
+        timezone: str
+        
+    class Duration:
+        amount: int
+        unit: str
+        
+    class Deadline:
+        date: str
+        lang: str
+        
+    user_id: str
+    id: str
+    project_id: str
+    section_id: str
+    parent_id: str
+    added_by_uid: str
+    assigned_to_uid: str
+    responsible_uid: str
+    labels: list[str]
+    deadline: Deadline
+    duration: Duration
+    checked: bool
+    is_deleted: bool
+    added_at: str
+    completed_at: str
+    updated_at: str
+    due: Due
+    priority: int
+    child_order: int
+    content: str
+    description: str
+    note_count: int
+    day_order: int
+    is_collapsed: bool
+    
+    def __init__(self):
+        self.user_id = ""
+        self.id = ""
+        self.project_id = ""
+        self.section_id = ""
+        self.parent_id = ""
+        self.added_by_uid = ""
+        self.assigned_to_uid = ""
+        self.responsible_uid = ""
+        self.labels = []
+        self.deadline = None
+        self.duration = None
+        self.checked = False
+        self.is_deleted = False
+        self.added_at = ""
+        self.completed_at = ""
+        self.updated_at = ""
+        self.due = None
+        self.priority = 1
+        self.child_order = 0
+        self.content = ""
+        self.description = ""
+        self.note_count = 0
+        self.day_order = 0
+        self.is_collapsed = False
+    
+        
 class TodoistFunctions:
     
     def __init__(self, api_token):
@@ -75,6 +142,33 @@ class TodoistFunctions:
             task_dict_name = {task['content']: [task['id'], projects_dict_id[task['project_id']]] for task in all_tasks}
             return task_dict_id, task_dict_name
         return active_tasks
+    
+    def getTasksv2(self, to_dict=True):
+        try:
+            active_projects_ids, _ = self.getProjects()
+            data = {
+                "sync_token": "*",
+                "resource_types": json.dumps(['items'])
+            }
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+            all_tasks = response.json().get("items", [])
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+        active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
+        task_objects = []
+        # tiene que haber una mejor forma de convertir dict a objeto
+        for task_data in active_tasks:
+            task_obj = Task()
+            for key, value in task_data.items():
+                if hasattr(task_obj, key):
+                    setattr(task_obj, key, value)
+            task_objects.append(task_obj)
+        return task_objects
 
     def getSections(self, to_dict=True, project_id=None):
         data = {
