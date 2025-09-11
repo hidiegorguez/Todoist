@@ -24,38 +24,39 @@ class Task:
         string: str
         timezone: str
         
-    class Duration:
-        amount: int
-        unit: str
-        
     class Deadline:
         date: str
         lang: str
         
+    class Duration:
+        amount: int
+        unit: str # "minute", "hour", "day"
+        
+    id: str 
     user_id: str
-    id: str
     project_id: str
-    section_id: str
-    parent_id: str
-    added_by_uid: str
-    assigned_to_uid: str
-    responsible_uid: str
-    labels: list[str]
-    deadline: Deadline
-    duration: Duration
-    checked: bool
-    is_deleted: bool
-    added_at: str
-    completed_at: str
-    updated_at: str
-    due: Due
-    priority: int
-    child_order: int
     content: str
     description: str
-    note_count: int
-    day_order: int
-    is_collapsed: bool
+    due: Due
+    deadline: Deadline
+    priority: int
+    parent_id: str
+    child_order: int # The order of the task. Defines the position of the task among all the tasks with the same parent.
+    section_id: str
+    day_order: int # The order of the task inside the Today or Next 7 days view (a number, where the smallest value would place the task at the top).
+    collapsed: bool # Whether the task's sub-tasks are collapsed (a true or false value).
+    labels: list[str]
+    added_by_uid: str
+    assigned_by_uid: str
+    responsible_uid: str
+    checked: bool
+    is_deleted: bool
+    sync_id: str # Identifier to find the match between tasks in shared projects of different collaborators. When you share a task, its copy has a different ID in the projects of your collaborators. To find a task in another account that matches yours, you can use the "sync_id" attribute. For non-shared tasks, the attribute is null.
+    completed_at: str
+    added_at: str
+    duration: Duration
+    # updated_at: str
+    # note_count: int
     
     def __init__(self):
         self.user_id = ""
@@ -169,6 +170,88 @@ class TodoistFunctions:
                     setattr(task_obj, key, value)
             task_objects.append(task_obj)
         return task_objects
+
+    def update_task(
+            self,
+            task_id,
+            content=None,
+            description=None,
+            due_date=None,
+            due_is_recurring=None,
+            due_lang=None,
+            due_string=None,
+            due_timezone=None,
+            deadline_date=None,
+            deadline_lang=None,
+            priority=None,
+            collapsed=None,
+            labels=None,
+            day_order=None,
+            duration_amount=None,
+            duration_unit=None,
+            ):
+        # no tested yet, and yet to think exceptions
+        data = {
+            "commands": [
+                {
+                    "type": "item_update",
+                    "uuid": str(uuid.uuid4()),
+                    "args": {
+                        "id": task_id,
+                        **({"content": content} if content is not None else {}),
+                        **({"description": description} if description is not None else {}),
+                        **({"due": {
+                            **({"date": due_date} if due_date is not None else {}),
+                            **({"is_recurring": due_is_recurring} if due_is_recurring is not None else {}),
+                            **({"lang": due_lang} if due_lang is not None else {}),
+                            **({"string": due_string} if due_string is not None else {}),
+                            **({"timezone": due_timezone} if due_timezone is not None else {})
+                        }} if any(v is not None for v in [due_date, due_is_recurring, due_lang, due_string, due_timezone]) else {}),
+                        **({"deadline": {
+                            **({"date": deadline_date} if deadline_date is not None else {}),
+                            **({"lang": deadline_lang} if deadline_lang is not None else {})
+                        }} if any(v is not None for v in [deadline_date, deadline_lang]) else {}),
+                        **({"priority": priority} if priority is not None else {}),
+                        **({"collapsed": collapsed} if collapsed is not None else {}),
+                        **({"labels": labels} if labels is not None else {}),
+                        **({"day_order": day_order} if day_order is not None else {}),
+                        **({"duration": {
+                            **({"amount": duration_amount} if duration_amount is not None else {}),
+                            **({"unit": duration_unit} if duration_unit is not None else {})
+                        }} if any(v is not None for v in [duration_amount, duration_unit]) else {})
+                    }
+                }
+            ]
+        }
+        response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+        return response.json()
+    
+    def move_task(
+            self,
+            task_id,
+            parent_id=None,
+            project_id=None,
+            section_id=None
+            ):
+        # no tested yet, and yet to think exceptions
+        if parent_id is None and project_id is None and section_id is None:
+            raise ValueError("Either project_id, parent_id or section_id must be provided.")
+        data = {
+            "commands": [
+                {
+                    "type": "item_move",
+                    "uuid": str(uuid.uuid4()),
+                    "args": {
+                        "id": task_id,
+                        **({"parent_id": parent_id} if parent_id is not None else {}),
+                        **({"project_id": project_id} if project_id is not None else {}),
+                        **({"section_id": section_id} if section_id is not None else {})
+                    }
+                }
+            ]
+        }
+        response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+        return response.json()
 
     def getSections(self, to_dict=True, project_id=None):
         data = {
