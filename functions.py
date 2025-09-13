@@ -190,40 +190,50 @@ class TodoistFunctions:
             duration_amount=None,
             duration_unit=None,
             ):
-        # no tested yet, and yet to think exceptions
-        data = {
-            "commands": [
-                {
-                    "type": "item_update",
-                    "uuid": str(uuid.uuid4()),
-                    "args": {
-                        "id": task_id,
-                        **({"content": content} if content is not None else {}),
-                        **({"description": description} if description is not None else {}),
-                        **({"due": {
-                            **({"date": due_date} if due_date is not None else {}),
-                            **({"is_recurring": due_is_recurring} if due_is_recurring is not None else {}),
-                            **({"lang": due_lang} if due_lang is not None else {}),
-                            **({"string": due_string} if due_string is not None else {}),
-                            **({"timezone": due_timezone} if due_timezone is not None else {})
-                        }} if any(v is not None for v in [due_date, due_is_recurring, due_lang, due_string, due_timezone]) else {}),
-                        **({"deadline": {
-                            **({"date": deadline_date} if deadline_date is not None else {}),
-                            **({"lang": deadline_lang} if deadline_lang is not None else {})
-                        }} if any(v is not None for v in [deadline_date, deadline_lang]) else {}),
-                        **({"priority": priority} if priority is not None else {}),
-                        **({"collapsed": collapsed} if collapsed is not None else {}),
-                        **({"labels": labels} if labels is not None else {}),
-                        **({"day_order": day_order} if day_order is not None else {}),
-                        **({"duration": {
-                            **({"amount": duration_amount} if duration_amount is not None else {}),
-                            **({"unit": duration_unit} if duration_unit is not None else {})
-                        }} if any(v is not None for v in [duration_amount, duration_unit]) else {})
+        try:
+            data = {
+                "commands": [
+                    {
+                        "type": "item_update",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "id": task_id,
+                            **({"content": content} if content is not None else {}),
+                            **({"description": description} if description is not None else {}),
+                            **({"due": {
+                                **({"date": due_date} if due_date is not None else {}),
+                                **({"is_recurring": due_is_recurring} if due_is_recurring is not None else {}),
+                                **({"lang": due_lang} if due_lang is not None else {}),
+                                **({"string": due_string} if due_string is not None else {}),
+                                **({"timezone": due_timezone} if due_timezone is not None else {})
+                            }} if any(v is not None for v in [due_date, due_is_recurring, due_lang, due_string, due_timezone]) else {}),
+                            **({"deadline": {
+                                **({"date": deadline_date} if deadline_date is not None else {}),
+                                **({"lang": deadline_lang} if deadline_lang is not None else {})
+                            }} if any(v is not None for v in [deadline_date, deadline_lang]) else {}),
+                            **({"priority": priority} if priority is not None else {}),
+                            **({"collapsed": collapsed} if collapsed is not None else {}),
+                            **({"labels": labels} if labels is not None else {}),
+                            **({"day_order": day_order} if day_order is not None else {}),
+                            **({"duration": {
+                                **({"amount": duration_amount} if duration_amount is not None else {}),
+                                **({"unit": duration_unit} if duration_unit is not None else {})
+                            }} if any(v is not None for v in [duration_amount, duration_unit]) else {})
+                        }
                     }
-                }
-            ]
-        }
-        response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
         return response.json()
     
     def move_task(
@@ -233,25 +243,199 @@ class TodoistFunctions:
             project_id=None,
             section_id=None
             ):
-        # no tested yet, and yet to think exceptions
-        if parent_id is None and project_id is None and section_id is None:
-            raise ValueError("Either project_id, parent_id or section_id must be provided.")
-        data = {
-            "commands": [
-                {
-                    "type": "item_move",
+        try:
+            if not any([parent_id, project_id, section_id]):
+                return "Function error: Either project_id, parent_id or section_id must be provided."
+            
+            data = {
+                "commands": [
+                    {
+                        "type": "item_move",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "id": task_id,
+                            **({"parent_id": parent_id} if parent_id is not None else {}),
+                            **({"project_id": project_id} if project_id is not None else {}),
+                            **({"section_id": section_id} if section_id is not None else {})
+                        }
+                    }
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+        return response.json()
+    
+    def delete_task(
+            self,
+            task_id: str
+            ):
+        try:
+            data = {
+                "commands": [
+                    {
+                        "type": "item_delete",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "id": task_id
+                        }
+                    }
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+        return response.json()
+
+    def complete_task(
+            self,
+            task_id: str
+            ):
+        try:
+            data = {
+                "commands": [
+                    {
+                        "type": "item_complete",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "id": task_id
+                        }
+                    }
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+        return response.json()
+    
+    def uncomplete_task(
+            self,
+            task_id: str
+            ):
+        try:
+            data = {
+                "commands": [
+                    {
+                        "type": "item_uncomplete",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "id": task_id
+                        }
+                    }
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+        return response.json()
+
+    def complete_recurring_task(
+            self,
+            task_id: str,
+            due_date: str = None,
+            due_string: str = None,
+            due_lang: str = None,
+            due_timezone: str = None,
+            is_forward: bool = True,
+            reset_subtasks: bool = False
+            ):
+        try:
+            is_forward = 1 if is_forward else 0
+            reset_subtasks = 1 if reset_subtasks else 0
+            data = {
+                "commands": [
+                    {
+                        "type": "item_update_date_complete",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "id": task_id,
+                            **({"due": {
+                                **({"date": due_date} if due_date is not None else {}),
+                                **({"string": due_string} if due_string is not None else {}),
+                                **({"lang": due_lang} if due_lang is not None else {}),
+                                **({"timezone": due_timezone} if due_timezone is not None else {})
+                            }} if any(v is not None for v in [due_date, due_string, due_lang, due_timezone]) else {}),
+                            **({"is_forward": is_forward} if is_forward is not None else {}),
+                            **({"reset_subtasks": reset_subtasks} if reset_subtasks is not None else {})
+                        }
+                    }
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+        
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+        return response.json()
+
+    def update_day_orders(
+            self,
+            ids_to_orders: dict[str, int]
+            ):
+        try:
+            commands = []
+            for task_id, day_order in ids_to_orders.items():
+                commands.append({
+                    "type": "item_update_day_orders",
                     "uuid": str(uuid.uuid4()),
                     "args": {
                         "id": task_id,
-                        **({"parent_id": parent_id} if parent_id is not None else {}),
-                        **({"project_id": project_id} if project_id is not None else {}),
-                        **({"section_id": section_id} if section_id is not None else {})
+                        "day_order": day_order
                     }
-                }
-            ]
-        }
-        response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
-        return response.json()
+                })
+            data = {
+                "commands": commands
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+
 
     def getSections(self, to_dict=True, project_id=None):
         data = {
