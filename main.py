@@ -184,15 +184,15 @@ class MainDiego:
                 self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
 
             # Weakly tasks
-            weakly_tasks_ids = ['9331340393', '8975486418']
+            weakly_tasks_ids = ['9331340393', '8975486418', '8552746412']
             for task_id in weakly_tasks_ids:
                 task = self.tf.getTask(task_id)
                 due = datetime.strptime(task.due.date, "%Y-%m-%d").date()
-                days_until_sunday = (6 - today.weekday()) % 7
-                next_sunday = due + timedelta(days=days_until_sunday)
-                if due != next_sunday:
-                    self.tf.setDeadline(task_id, next_sunday.strftime("%Y-%m-%d"))
-                    weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday.strftime("%Y-%m-%d")}')
+                days_until_sunday_from_due = (6 - due.weekday()) % 7
+                next_sunday_from_due = due + timedelta(days=days_until_sunday_from_due)
+                if due != next_sunday_from_due:
+                    self.tf.setDeadline(task_id, next_sunday_from_due.strftime("%Y-%m-%d"))
+                    weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
                 
             # Investment task
             # task_id = 8715203918
