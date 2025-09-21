@@ -207,7 +207,7 @@ class MainDiego:
             #     self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
 
             # Weakly tasks
-            weakly_tasks_ids = ['9331340393', '8975486418', '8552746412']
+            weakly_tasks_ids = ['9331340393', '8975486418', '8552746412', '7259334483', '7259343203', '7259344527', '7259337084']
             for task_id in weakly_tasks_ids:
                 task = self.tf.getTask(task_id)
                 due = datetime.strptime(task.due.date, "%Y-%m-%d").date()
