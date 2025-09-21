@@ -274,6 +274,36 @@ class TodoistFunctions:
         
         return response.json()
     
+    def reorder_tasks(
+            self,
+            tasks: dict[str, int]
+            ):
+        try:
+            items = [{"id": task_id, "child_order": order} for task_id, order in tasks.items()]
+            data = {
+                "commands": [
+                    {
+                        "type": "item_reorder",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "items": items
+                        }
+                    }
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+            
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:   
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+        return response.json()
+    
     def delete_task(
             self,
             task_id: str
@@ -406,6 +436,35 @@ class TodoistFunctions:
         
         return response.json()
 
+    def close_task(
+            self,
+            task_id
+        ):
+        try:
+            data = {
+                "commands": [
+                    {
+                        "type": "item_close",
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "id": task_id
+                        }
+                    }
+                ]
+            }
+
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
+        return response.json()
+
     def update_day_orders(
             self,
             ids_to_orders: dict[str, int]
@@ -435,7 +494,48 @@ class TodoistFunctions:
         except Exception as e:
             return f"Function error: {e}"
         
+    def get_task(
+            self,
+            task_id: str,
+            all_data=False
+        ):
+        # doesn't work
+        try:
+            url = f"{self.sync_url[:-5]}/items/get"
+            data = {
+                "item_id": task_id
+            }
+            response = requests.get(url, headers=self.headers, data=data)
+            response.raise_for_status()
+            task_data = response.json().get("item")
 
+            if not task_data:
+                return None
+            
+            if all_data:
+                return task_data
+            
+            task_obj = Task()
+            for key, value in task_data.items():
+                if hasattr(task_obj, key):
+                    setattr(task_obj, key, value)
+            return task_obj
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return None
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return None
+        except Exception as e:
+            print(f"Function error: {e}")
+            return None
+
+    def get_all_completed_tasks():
+        return None
+    
+    def quick_add_task():
+        return None
 
     def getSections(self, to_dict=True, project_id=None):
         data = {
