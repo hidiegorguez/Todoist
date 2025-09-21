@@ -89,6 +89,29 @@ class MainDiego:
             
             all_tasks, task_dict_id, task_dict_name = refreshTasks()
             
+            all_tasks_v2 = self.tf.getTasksv2(to_dict=False)
+            # task_to_remove_work_label = list(filter(lambda task: 'Work' in task.labels and task.project_id == '2316607649', all_tasks_v2))
+            # task_to_remove_work_label_and_move = list(filter(lambda task: 'Work' in task.labels and task.project_id == '2258455386', all_tasks_v2))
+            # tasks_to_add_duration = list(filter(lambda task: task.duration is not None and task.duÇe is not None, all_tasks_v2))
+            tasks_in_inbox = list(filter(lambda task: task.project_id == '2258455386', all_tasks_v2))
+            # tasks_to_capitalize = list(filter(lambda task: task.content[0].upper() != task.content[0], all_tasks_v2))
+            # birthday_tasks = list(filter(lambda task: task.project_id == '2259726698' and task.labels != ['Phone','Short'], all_tasks_v2))
+            # suitcase_and_expenses_tasks = list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '2259406345', all_tasks_v2))
+            # weekly_tasks = list(filter(lambda task: task.id in ['9331340393', '8975486418'], all_tasks_v2))
+            # counter_task = list(filter(lambda task: task.id == '8326227450', all_tasks_v2))
+            # investment_task = list(filter(lambda task: task.id == '8715203918', all_tasks_v2))
+            
+            for task in tasks_in_inbox:
+                self.tf.update_task(task_id=task.id,
+                                    content=task.content[0].upper()+task.content[1:],
+                                    priority=self.tf.priorityInversal(3),
+                                    due_string="today")
+                message = f'Task "{task.content}" moved out from the inbox'
+                self.tf.move_task(task_id=task.id,
+                                  project_id='2298494169')
+                inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
+                
+            
             # Basic orders
             for task in all_tasks:
                 
@@ -108,17 +131,17 @@ class MainDiego:
                         message = f'{task["content"]}'
                         duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
                 
-                # Move out from the inbox
-                if task['project_id'] == '2258455386':
-                    self.api.update_task(task_id=task['id'],
-                                    content=task['content'][0].upper()+task['content'][1:],
-                                    priority=self.tf.priorityInversal(3),
-                                    due_string="today")
-                    message = f'Task "{task["content"]}" moved out from the inbox'
-                    self.tf.moveTask(task_id=task['id'],
-                                     project_id='2298494169')
-                    inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
-                    break
+                # # Move out from the inbox
+                # if task['project_id'] == '2258455386':
+                #     self.api.update_task(task_id=task['id'],
+                #                     content=task['content'][0].upper()+task['content'][1:],
+                #                     priority=self.tf.priorityInversal(3),
+                #                     due_string="today")
+                #     message = f'Task "{task["content"]}" moved out from the inbox'
+                #     self.tf.moveTask(task_id=task['id'],
+                #                      project_id='2298494169')
+                #     inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
+                #     break
                     
                 # Capitalize title
                 if task["content"][0].upper() != task["content"][0]:
@@ -176,12 +199,12 @@ class MainDiego:
             if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
                 all_tasks, task_dict_id, task_dict_name = refreshTasks()
                     
-            # Counter task
-            task_id = 8326227450
-            task = self.tf.getTask(task_id)
-            if task.is_completed:
-                self.tf.uncompleteTask(task_id)
-                self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
+            # # Counter task
+            # task_id = 8326227450
+            # task = self.tf.getTask(task_id)
+            # if task.is_completed:
+            #     self.tf.uncompleteTask(task_id)
+            #     self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
 
             # Weakly tasks
             weakly_tasks_ids = ['9331340393', '8975486418']
@@ -194,7 +217,7 @@ class MainDiego:
                     self.tf.setDeadline(task_id, next_sunday.strftime("%Y-%m-%d"))
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday.strftime("%Y-%m-%d")}')
                 
-            # Investment task
+            # # Investment task
             # task_id = 8715203918
             # task = self.tf.getTask(task_id)
             # if task.is_completed and (weekday == 0 or today.day == 1):
@@ -316,7 +339,7 @@ class MainDiego:
             
             # Mail
             try:
-                fun.sendEmail(subject="Daily Todoist", body=body, to=address)
+                # fun.sendEmail(subject="Daily Todoist", body=body, to=address)
                 return f'{body}\n\nAnd mail sent correctly'
             
             except Exception as e:
@@ -326,7 +349,7 @@ class MainDiego:
         except Exception as e:
             try:
                 error_msg = fun.buildExceptionMsg(e)
-                fun.sendEmail("Daily Todoist - Error", error_msg, address)
+                # fun.sendEmail("Daily Todoist - Error", error_msg, address)
                 return error_msg
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
