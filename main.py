@@ -341,7 +341,7 @@ class MainDiego:
             
             # Mail
             try:
-                # fun.sendEmail(subject="Daily Todoist", body=body, to=address)
+                fun.sendEmail(subject="Daily Todoist", body=body, to=address)
                 return f'{body}\n\nAnd mail sent correctly'
             
             except Exception as e:
@@ -351,7 +351,7 @@ class MainDiego:
         except Exception as e:
             try:
                 error_msg = fun.buildExceptionMsg(e)
-                # fun.sendEmail("Daily Todoist - Error", error_msg, address)
+                fun.sendEmail("Daily Todoist - Error", error_msg, address)
                 return error_msg
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
