@@ -200,11 +200,11 @@ class MainDiego:
                 all_tasks, task_dict_id, task_dict_name = refreshTasks()
                     
             # # Counter task
-            # task_id = 8326227450
-            # task = self.tf.getTask(task_id)
-            # if task.is_completed:
-            #     self.tf.uncompleteTask(task_id)
-            #     self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
+            task_id = 8326227450
+            task = self.tf.getTask(task_id)
+            if task.is_completed:
+                self.tf.uncompleteTask(task_id)
+                self.api.update_task(task_id=task_id, due_string=f'today at 6 am')
 
             # Weakly tasks
             weakly_tasks_ids = ['9331340393', '8975486418', '8552746412', '7259334483', '7259343203', '7259344527', '7259337084']
