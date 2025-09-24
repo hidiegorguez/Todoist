@@ -199,7 +199,7 @@ class MainDiego:
             if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
                 all_tasks, task_dict_id, task_dict_name = refreshTasks()
                     
-            # # Counter task
+            # Counter task
             task_id = 8326227450
             task = self.tf.getTask(task_id)
             if task.is_completed:
