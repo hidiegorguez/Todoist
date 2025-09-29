@@ -106,7 +106,7 @@ class MainDiego:
             
             # Add duration labels
             for task in list(filter(lambda task: task.duration is not None and task.due is not None, all_tasks_v2)):
-                updateTaskDurationLabel(task.id,task.duration.amount)
+                updateTaskDurationLabel(task.id,task.duration['amount'])
                 message = f'{task.content}'
                 duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
