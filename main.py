@@ -211,7 +211,7 @@ class MainDiego:
             evaluate = True
             if self.tf.getTask('4632052423').is_completed == True:
                 self.tf.uncomplete_task('4632052423')
-                self.api.update_task(task_id='4632052423', due_string='every friday 20:00')
+                self.tf.update_task(task_id='4632052423', due_string='every friday 20:00')
                 message = 'Fantasy task moved back to weekends'
                 fantasy_msg.append(message)
                 evaluate = False
@@ -225,7 +225,7 @@ class MainDiego:
                                 if fantasydate > matchday > fun.getNextMonday():
                                     message = 'Fantasy task moved to Tuesday'
                                     fantasy_msg.append(message) 
-                                    self.api.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
+                                    self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
                                     all_tasks, task_dict_id, task_dict_name = refreshTasks()
                                     break
                             except TypeError:
@@ -253,7 +253,7 @@ class MainDiego:
                     if task_id in permanenttasks.keys() and task_id not in task_dict_id and task_id not in uncompleted_tasks:
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
-                        self.api.update_task(task_id=task_id,
+                        self.tf.update_task(task_id=task_id,
                                              due_string="No date")
                         message = f'Task "{self.tf.getTask(id=task_id).content}" uncompleted'
                         if project_id == '2259406345':
@@ -326,15 +326,15 @@ class MainDiego:
             if task.is_completed:
                 if weekday in [0, 4] and hour in [16, 17]:
                     self.tf.uncomplete_task(task_id)
-                    self.api.update_task(task_id=task_id, due_string=f'today at 7 pm')
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 7 pm')
                     edited = True
                 elif weekday in [1, 2, 3] and hour in [14, 15]:
                     self.tf.uncomplete_task(task_id)
-                    self.api.update_task(task_id=task_id, due_string=f'today at 5 pm')
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 5 pm')
                     edited = True
                 elif weekday in [5, 6] and hour in [10, 11]:
                     self.tf.uncomplete_task(task_id)
-                    self.api.update_task(task_id=task_id, due_string=f'today at 1 pm')
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 1 pm')
                     edited = True
                 if edited:
                     self.tf.add_reminder(task_id=task_id, minute_offset=0)
@@ -353,10 +353,10 @@ class MainDiego:
             if weekday in [2, 4, 6]:
                 if task.is_completed:
                     self.tf.uncomplete_task(task_id)
-                    self.api.update_task(task_id=task_id, due_string=f'today at 9 pm')
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 9 pm')
                     self.tf.add_reminder(task_id=task_id, minute_offset=0)
                 else:
-                    self.api.update_task(task_id=task_id, due_string=f'today at 9 pm')
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 9 pm')
                 
             return f'Execution completed, day {weekday}'
         
@@ -391,7 +391,7 @@ class MainDiego:
                     task = self.tf.getTask(id=task_id)
                     if set(task_labels) != set(task.labels):
                         print(f'Task {task_name_cap} has different labels. From {task.labels} to {task_labels}')
-                        self.api.update_task(task_id=task_id, labels=task_labels)
+                        self.tf.update_task(task_id=task_id, labels=task_labels)
                         edited_tasks.append(task_name_cap)
                     # else:
                     #     print(f'Task {task_name_cap} already there')
@@ -465,7 +465,7 @@ class MainDiego:
                     task = self.tf.getTask(task_id)
                     if task.is_completed:
                         self.tf.uncomplete_task(task_id)
-                    self.api.update_task(task_id=task_id, due_string=f'today at 15:30',  duration=30, duration_unit='minute')
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 15:30', duration_amount=30, duration_unit='minute')
                     self.tf.add_reminder(task_id=task_id, minute_offset=30)
                     
                     return f'Task created'
