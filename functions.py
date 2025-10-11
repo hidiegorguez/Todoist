@@ -573,25 +573,33 @@ class TodoistFunctions:
         except Exception as error:
             return error
 
-    def setReminder(self, task_id, minute_offset): 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_token}",
-        }
-        commands = [
-            {
-                "type": "reminder_add",
-                "temp_id": str(uuid.uuid4()),
-                "uuid": str(uuid.uuid4()),
-                "args": {
-                    "item_id": task_id,
-                    "minute_offset": minute_offset,
-                    "type": "relative"
-                }
+    def add_reminder(self,
+                    task_id,
+                    minute_offset):
+        try:
+            data = {
+                "commands": [
+                    {
+                        "type": "reminder_add",
+                        "temp_id": str(uuid.uuid4()),
+                        "uuid": str(uuid.uuid4()),
+                        "args": {
+                            "item_id": task_id,
+                            "minute_offset": minute_offset,
+                            "type": "relative"
+                        }
+                    }
+                ]
             }
-        ]
-        data = {"commands": commands}
-        response = requests.post(self.sync_url, headers=headers, json=data)
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {response.status_code}: {response.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
         
         return response.json()
 
