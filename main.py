@@ -63,14 +63,6 @@ class MainDiego:
                     if label not in label_names:
                         label_names.append(label)
             label_names
-
-            # Functions
-            def updateTaskDurationLabel(task_id, task_duration):
-                duration_label = self.tf.getDurationLabel(task_duration)
-                task_id = task_id[0]
-                task_labels_without_duration = self.tf.getLabelsWithoutDuration(task_id)
-                task_labels_without_duration.append(duration_label)
-                self.tf.update_task(task_id=task_id, labels=task_labels_without_duration)
                 
             def similarTasks(project_ids, umbral=0.5):
                 project_tasks = []
@@ -105,11 +97,13 @@ class MainDiego:
                 self.tf.move_task(task_id=task.id,
                                   project_id='2316607649')
             
-            # # Add duration labels
-            # for task in list(filter(lambda task: task.duration is not None and task.due is not None, all_tasks_v2)):
-            #     updateTaskDurationLabel(task.id,task.duration['amount'])
-            #     message = f'{task.content}'
-            #     duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
+            # Add duration labels
+            for task in list(filter(lambda task: task.duration is not None and all(label not in task.labels for label in ['Long', 'Med', 'Short']), all_tasks_v2)):
+                new_label = self.tf.getDurationLabel(task.duration['amount'])
+                self.tf.update_task(task_id=task.id,
+                                    labels=task.labels+[new_label])
+                message = f'{task.content}'
+                duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
             # Move out from the inbox
             for task in list(filter(lambda task: task.project_id == '2258455386' and 'Work' not in task.labels, all_tasks_v2)):
