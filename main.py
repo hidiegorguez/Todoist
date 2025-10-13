@@ -123,44 +123,44 @@ class MainDiego:
                 message = f'{task.content}'
                 capitalization_msgs.append('- '+message.split(' updated correctly to ')[-1])
             
-            # # Birthday labels
-            # for task in list(filter(lambda task: task.project_id == '2259726698' and task.labels != ['Phone','Short'], all_tasks_v2)):
-            #     try:
-            #         month = task.due['date'][5:7]
-            #         day = task.due['date'][8:10]
-            #         self.tf.update_task(task_id=task.id,
-            #                              due_string=f'cada {day} {month} 23:00',
-            #                              labels=['Phone','Short'])
-            #         message = f'{task.content}'
-            #         self.tf.add_reminder(task_id=task.id,
-            #                             minute_offset=1380)
-            #         birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
-            #     except:
-            #         birthday_msgs.append(f"Task '{task.content}' probably does not have a proper due_string")
+            # Birthday labels
+            for task in list(filter(lambda task: task.project_id == '2259726698' and task.labels != ['Phone','Short'], all_tasks_v2)):
+                try:
+                    month = task.due['date'][5:7]
+                    day = task.due['date'][8:10]
+                    self.tf.update_task(task_id=task.id,
+                                        due_string=f'cada {day} {month} 23:00',
+                                        labels=['Phone','Short'])
+                    message = f'{task.content}'
+                    self.tf.add_reminder(task_id=task.id,
+                                         minute_offset=1380)
+                    birthday_msgs.append("- "+message.split(' updated correctly to ')[-1])
+                except:
+                    birthday_msgs.append(f"Task '{task.content}' probably does not have a proper due_string")
             
-            # # Suitcase and expenses tasks
-            # for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '2259406345', all_tasks_v2)):
-            #     title = task.content
-            #     if any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks_v2)):
-            #         vacation_day = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
-            #         if vacation_day > today + timedelta(days=3):
-            #             self.api.add_task(content=f'Preparar maleta {title}',
-            #                               due_string=f"3 dias antes de {task.due['date']}",
-            #                               priority=self.tf.priorityInversal(2), #orange
-            #                               labels=['Long', 'Home'],
-            #                               project_id='2258518194')
-            #             message = f'Task "Preparar maleta {title}" created succesfully'
-            #             suitcase_msgs.append("- "+message)
+            # Suitcase and expenses tasks
+            for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '2259406345', all_tasks_v2)):
+                title = task.content
+                if any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks_v2)):
+                    vacation_day = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
+                    if vacation_day > today + timedelta(days=3):
+                        self.api.add_task(content=f'Preparar maleta {title}',
+                                          due_string=f"3 dias antes de {task.due['date']}",
+                                          priority=self.tf.priorityInversal(2), #orange
+                                          labels=['Long', 'Home'],
+                                          project_id='2258518194')
+                        message = f'Task "Preparar maleta {title}" created succesfully'
+                        suitcase_msgs.append("- "+message)
                         
-            #     if any(filter(lambda t: t.content == f'Apuntar gastos de {title}', all_tasks_v2)):
-            #         if task.due['string'][-14:-8] == "fin 20" or task.due['string'][-17:-8] == 'ending 20':        
-            #             self.api.add_task(content=f'Apuntar gastos de {title}',
-            #                               due_string=f"1 dia despues de {task.due['string'][-10:]}",
-            #                               priority=self.tf.priorityInversal(3), #blue
-            #                               labels=['Phone', 'PC', 'Long'],
-            #                               project_id='2258518194')
-            #             message = f'Task "Apuntar gastos de {title}" created succesfully'
-            #             expenses_msgs.append("- "+message)
+                if any(filter(lambda t: t.content == f'Apuntar gastos de {title}', all_tasks_v2)):
+                    if task.due['string'][-14:-8] == "fin 20" or task.due['string'][-17:-8] == 'ending 20':        
+                        self.api.add_task(content=f'Apuntar gastos de {title}',
+                                          due_string=f"1 dia despues de {task.due['string'][-10:]}",
+                                          priority=self.tf.priorityInversal(3), #blue
+                                          labels=['Phone', 'PC', 'Long'],
+                                          project_id='2258518194')
+                        message = f'Task "Apuntar gastos de {title}" created succesfully'
+                        expenses_msgs.append("- "+message)
             
             # # Refresh tasks if there was changes
             # if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
