@@ -84,15 +84,13 @@ class MainDiego:
             
             # Remove Work label
             for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2316607649', all_tasks_v2)):
-                task.labels.remove('Work')
                 self.tf.update_task(task_id=task.id,
-                                    labels=task.labels)
-            
+                                    labels=[label for label in task.labels if label != 'Work'])
+                
             # Remove Work label and move from the inbox
             for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2258455386', all_tasks_v2)):
-                task.labels.remove('Work')
                 self.tf.update_task(task_id=task.id,
-                                    labels=task.labels,
+                                    labels=[label for label in task.labels if label != 'Work'],
                                     due_string="today")
                 self.tf.move_task(task_id=task.id,
                                   project_id='2316607649')
@@ -141,7 +139,7 @@ class MainDiego:
             # Suitcase and expenses tasks
             for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '2259406345', all_tasks_v2)):
                 title = task.content
-                if any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks_v2)):
+                if not any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks_v2)):
                     vacation_day = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
                     if vacation_day > today + timedelta(days=3):
                         self.api.add_task(content=f'Preparar maleta {title}',
@@ -152,14 +150,14 @@ class MainDiego:
                         message = f'Task "Preparar maleta {title}" created succesfully'
                         suitcase_msgs.append("- "+message)
                         
-                if any(filter(lambda t: t.content == f'Apuntar gastos de {title}', all_tasks_v2)):
+                if not any(filter(lambda t: t.content == f'Apuntar gastos {title}', all_tasks_v2)):
                     if task.due['string'][-14:-8] == "fin 20" or task.due['string'][-17:-8] == 'ending 20':        
-                        self.api.add_task(content=f'Apuntar gastos de {title}',
+                        self.api.add_task(content=f'Apuntar gastos {title}',
                                           due_string=f"1 dia despues de {task.due['string'][-10:]}",
                                           priority=self.tf.priorityInversal(3), #blue
                                           labels=['Phone', 'PC', 'Long'],
                                           project_id='2258518194')
-                        message = f'Task "Apuntar gastos de {title}" created succesfully'
+                        message = f'Task "Apuntar gastos {title}" created succesfully'
                         expenses_msgs.append("- "+message)
             
             # # Refresh tasks if there was changes
