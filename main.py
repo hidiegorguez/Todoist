@@ -51,14 +51,16 @@ class MainDiego:
             
             # Projects, sections and tasks
             projects_dict_id, _ = self.tf.getProjects()
-            def refreshTasks():
-                all_tasks = self.tf.getTasks(to_dict=False)
-                task_dict_id, task_dict_name = self.tf.getTasks()
-                return all_tasks, task_dict_id, task_dict_name
-            all_tasks, task_dict_id, task_dict_name = refreshTasks()
+            # def refreshTasks():
+            #     all_tasks = self.tf.getTasks(to_dict=False)
+            #     task_dict_id, task_dict_name = self.tf.getTasks()
+            #     return all_tasks, task_dict_id, task_dict_name
+            # all_tasks, task_dict_id, _ = refreshTasks()
+            all_tasks_v2 = self.tf.getTasksv2(to_dict=False)
+            
             label_names=[]
-            for task in all_tasks:
-                gross_labels=task['labels']
+            for task in all_tasks_v2:
+                gross_labels=task.labels
                 for label in gross_labels:
                     if label not in label_names:
                         label_names.append(label)
@@ -67,20 +69,30 @@ class MainDiego:
             def similarTasks(project_ids, umbral=0.5):
                 project_tasks = []
                 similars = []
-                for task in all_tasks:
-                    if task['project_id'] not in project_ids:
-                        project_tasks.append(task['id'])
+                for task in all_tasks_v2:
+                    if task.project_id not in project_ids:
+                        project_tasks.append(task.content)
                 for i in range(len(project_tasks)-1):
                     for j in range(i+1,len(project_tasks)):
-                        message = fun.areSimilar(task_dict_id[project_tasks[i]][0],
-                                                 task_dict_id[project_tasks[j]][0],
-                                                 umbral=umbral) 
+                        message = fun.areSimilar(project_tasks[i], project_tasks[j], umbral=umbral) 
                         if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README' and message != 'Trabajo & Trabajo':
                             similars.append(message)
                 return similars
-            
-            all_tasks, task_dict_id, task_dict_name = refreshTasks()
-            all_tasks_v2 = self.tf.getTasksv2(to_dict=False)
+
+            def similarTasksv2(project_ids, umbral=0.5):
+                project_tasks = []
+                similars = []
+                for task in all_tasks_v2:
+                    if task.project_id not in project_ids:
+                        project_tasks.append(task.content)
+                for i in range(len(project_tasks)-1):
+                    for j in range(i+1,len(project_tasks)):
+                        message = fun.areSimilar(project_tasks[i], project_tasks[j], umbral=umbral) 
+                        if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README' and message != 'Trabajo & Trabajo':
+                            similars.append(message)
+                return similars  
+                      
+            # all_tasks, task_dict_id, _ = refreshTasks()
             
             # Remove Work label
             for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2316607649', all_tasks_v2)):
@@ -162,7 +174,7 @@ class MainDiego:
             
             # # Refresh tasks if there was changes
             # if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
-            #     all_tasks, task_dict_id, task_dict_name = refreshTasks()
+            #     all_tasks, task_dict_id, _ = refreshTasks()
             #     all_tasks_v2 = self.tf.getTasksv2(to_dict=False)
             
             # Counter task
@@ -185,7 +197,7 @@ class MainDiego:
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
                 
             # Similar tasks       
-            similars = similarTasks(project_ids=['2259150181',
+            similars = similarTasksv2(project_ids=['2259150181',
                                                  '2269361803',
                                                  '2259111397',
                                                  '2332125933',
@@ -215,19 +227,38 @@ class MainDiego:
                 evaluate = False
             if evaluate:
                 if weekday in [0,5,6] and self.tf.getTask('4632052423').due.date != today.strftime('%Y-%m-%d'):
-                    for task in all_tasks:
-                        if task['section_id'] == '51988025' and task['parent_id'] == '8023322112':
-                            try:
-                                fantasydate = datetime.strptime(self.tf.getTask('4632052423').due.date, '%Y-%m-%d')
-                                matchday = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
-                                if fantasydate > matchday > fun.getNextMonday():
-                                    message = 'Fantasy task moved to Tuesday'
-                                    fantasy_msg.append(message) 
-                                    self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
-                                    all_tasks, task_dict_id, task_dict_name = refreshTasks()
-                                    break
-                            except TypeError:
-                                pass
+                    
+                    # --------- old version ------------
+                    # for task in all_tasks:
+                    #     if task['section_id'] == '51988025' and task['parent_id'] == '9283550716':
+                    #         try:
+                    #             fantasydate = datetime.strptime(self.tf.getTask('4632052423').due.date, '%Y-%m-%d')
+                    #             matchday = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
+                    #             if fantasydate > matchday > fun.getNextMonday():
+                    #                 message = 'Fantasy task moved to Tuesday'
+                    #                 fantasy_msg.append(message) 
+                    #                 self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
+                    #                 # all_tasks, task_dict_id, _ = refreshTasks()
+                    #                 break
+                    #         except TypeError: # due date is None, not matchdate released yet
+                    #             pass
+                    # ----------------------------------
+                            
+                    # --------- new version ------------
+                    for task in filter(lambda task: task.section_id == '51988025' and task.parent_id == '9283550716', all_tasks_v2):
+                        try:
+                            fantasy_task = list(filter(lambda task: task.id == '4632052423', all_tasks_v2))[0]
+                            fantasydate = datetime.strptime(fantasy_task.due['date'][:10], '%Y-%m-%d')
+                            matchday = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
+                            if fantasydate > matchday > fun.getNextMonday():
+                                message = 'Fantasy task moved to Tuesday'
+                                fantasy_msg.append(message) 
+                                self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
+                                # all_tasks, task_dict_id, _ = refreshTasks()
+                                break
+                        except TypeError: # due date is None, not matchdate released yet
+                            pass
+                    # ---------------------------------
                 
             # Permanent tasks
             update_permanenttasksdiego = True
@@ -248,7 +279,8 @@ class MainDiego:
                 for task in completed_tasks:
                     task_id = task['task_id']
                     project_id = task['project_id']
-                    if task_id in permanenttasks.keys() and task_id not in task_dict_id and task_id not in uncompleted_tasks:
+                    if not any(filter(lambda task: task.id == task_id, all_tasks_v2)) and task_id not in uncompleted_tasks:
+                    # if task_id in permanenttasks.keys() and task_id not in task_dict_id and task_id not in uncompleted_tasks:
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
                         self.tf.update_task(task_id=task_id,
@@ -260,13 +292,13 @@ class MainDiego:
                             message += f' and moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
                         permanenttasks_msg.append("- " + message)
                     
-                all_tasks, task_dict_id, task_dict_name = refreshTasks()
+                # all_tasks, task_dict_id, _ = refreshTasks()
 
                 tasks = self.api.get_tasks()
-                permanenttasks={}
+                permanenttasks = {}
                 for task in tasks:
                     if 'Permanent' in task.labels:
-                        permanenttasks[task.id]=task.project_id
+                        permanenttasks[task.id] = task.project_id
                 df_permanenttasks = pd.DataFrame.from_dict({'task_id':permanenttasks.keys(),'project_id':permanenttasks.values()})       
                 try:
                     az.uploadCsvToBlob(df_permanenttasks, permanenttasks_route)
@@ -284,7 +316,6 @@ class MainDiego:
                     count += 1
             if fantasy_msg != []:
                 body += "\n" + f"{count}. " + fantasy_msg[0] + "\n"
-            print(permanenttasks_msg)
             if permanenttasks_msg != []:
                 if permanenttasks_msg[0][:2] != "- ":
                     body += "\n" + f"{count}. " + permanenttasks_msg[0] + "\n"
