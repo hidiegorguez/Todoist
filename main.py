@@ -277,7 +277,7 @@ class MainDiego:
                 for task in completed_tasks:
                     task_id = task['task_id']
                     project_id = task['project_id']
-                    if not any(filter(lambda task: task.id == task_id, all_tasks_v2)) and task_id not in uncompleted_tasks:
+                    if not any(filter(lambda task: task.id == task_id, all_tasks_v2)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
                     # if task_id in permanenttasks.keys() and task_id not in task_dict_id and task_id not in uncompleted_tasks:
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
