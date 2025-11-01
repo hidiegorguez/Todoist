@@ -184,10 +184,8 @@ class MainDiego:
                 self.tf.uncomplete_task(task_id)
                 self.tf.update_task(task_id=task_id, due_string=f'today at 6 am')
 
-            # Weakly tasks
-            weakly_tasks_ids = ['9331340393', '8975486418', '8552746412', '7259334483', '7259343203', '7259344527', '7259337084']
-            weekly_tasks = list(filter(lambda task: task.id in weakly_tasks_ids, all_tasks_v2))
-            for task in weekly_tasks:
+            # Weekly tasks
+            for task in list(filter(lambda task: 'Weekly' in task.labels, all_tasks_v2)):
                 due = datetime.strptime(task.due['date'][:10], "%Y-%m-%d").date()
                 deadline = datetime.strptime(task.deadline['date'][:10], "%Y-%m-%d").date()
                 days_until_sunday_from_due = (6 - due.weekday()) % 7
