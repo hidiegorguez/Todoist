@@ -187,10 +187,14 @@ class MainDiego:
             # Weekly tasks
             for task in list(filter(lambda task: 'Weekly' in task.labels, all_tasks_v2)):
                 due = datetime.strptime(task.due['date'][:10], "%Y-%m-%d").date()
-                deadline = datetime.strptime(task.deadline['date'][:10], "%Y-%m-%d").date()
+                evaluate_deadline = True
+                if task.deadline is not None:
+                    deadline = datetime.strptime(task.deadline['date'][:10], "%Y-%m-%d").date()
+                else:
+                    evaluate_deadline = False
                 days_until_sunday_from_due = (6 - due.weekday()) % 7
                 next_sunday_from_due = due + timedelta(days=days_until_sunday_from_due)
-                if next_sunday_from_due != deadline:
+                if not evaluate_deadline or next_sunday_from_due != deadline:
                     self.tf.update_task(task_id=task.id, deadline_date=next_sunday_from_due.strftime("%Y-%m-%d"))
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
                 
