@@ -51,11 +51,6 @@ class MainDiego:
             
             # Projects, sections and tasks
             projects_dict_id, _ = self.tf.getProjects()
-            # def refreshTasks():
-            #     all_tasks = self.tf.getTasks(to_dict=False)
-            #     task_dict_id, task_dict_name = self.tf.getTasks()
-            #     return all_tasks, task_dict_id, task_dict_name
-            # all_tasks, task_dict_id, _ = refreshTasks()
             all_tasks_v2 = self.tf.getTasksv2(to_dict=False)
             
             label_names=[]
@@ -65,21 +60,8 @@ class MainDiego:
                     if label not in label_names:
                         label_names.append(label)
             label_names
-                
-            def similarTasks(project_ids, umbral=0.5):
-                project_tasks = []
-                similars = []
-                for task in all_tasks_v2:
-                    if task.project_id not in project_ids:
-                        project_tasks.append(task.content)
-                for i in range(len(project_tasks)-1):
-                    for j in range(i+1,len(project_tasks)):
-                        message = fun.areSimilar(project_tasks[i], project_tasks[j], umbral=umbral) 
-                        if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README' and message != 'Trabajo & Trabajo':
-                            similars.append(message)
-                return similars
 
-            def similarTasksv2(project_ids, umbral=0.5):
+            def similar_tasks(project_ids, umbral=0.5):
                 project_tasks = []
                 similars = []
                 for task in all_tasks_v2:
@@ -90,9 +72,7 @@ class MainDiego:
                         message = fun.areSimilar(project_tasks[i], project_tasks[j], umbral=umbral) 
                         if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README' and message != 'Trabajo & Trabajo':
                             similars.append(message)
-                return similars  
-                      
-            # all_tasks, task_dict_id, _ = refreshTasks()
+                return similars 
             
             # Remove Work label
             for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2316607649', all_tasks_v2)):
@@ -172,11 +152,6 @@ class MainDiego:
                         message = f'Task "Apuntar gastos {title}" created succesfully'
                         expenses_msgs.append("- "+message)
             
-            # # Refresh tasks if there was changes
-            # if duration_msgs != [] or capitalization_msgs != [] or birthday_msgs != [] or suitcase_msgs != []:
-            #     all_tasks, task_dict_id, _ = refreshTasks()
-            #     all_tasks_v2 = self.tf.getTasksv2(to_dict=False)
-            
             # Counter task
             task_id = 8326227450
             task = self.tf.getTask(task_id)
@@ -197,14 +172,18 @@ class MainDiego:
                 if not evaluate_deadline or next_sunday_from_due != deadline:
                     self.tf.update_task(task_id=task.id, deadline_date=next_sunday_from_due.strftime("%Y-%m-%d"))
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
+                if due.weekday() in [4, 5]:
+                    self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(2))
+                elif due.weekday() == 6:
+                    self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(1))
                 
             # Similar tasks       
-            similars = similarTasksv2(project_ids=['2259150181',
+            similars = similar_tasks(project_ids=['2259150181',
                                                  '2269361803',
                                                  '2259111397',
                                                  '2332125933',
                                                  '2320233020'],
-                                    umbral=0.7)
+                                       umbral=0.7)
             if weekday == 0:
                 similars_blob = []
             else:
@@ -282,7 +261,6 @@ class MainDiego:
                     task_id = task['task_id']
                     project_id = task['project_id']
                     if not any(filter(lambda task: task.id == task_id, all_tasks_v2)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
-                    # if task_id in permanenttasks.keys() and task_id not in task_dict_id and task_id not in uncompleted_tasks:
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
                         self.tf.update_task(task_id=task_id,
@@ -293,8 +271,6 @@ class MainDiego:
                                             project_id='2263729931')
                             message += f' and moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
                         permanenttasks_msg.append("- " + message)
-                    
-                # all_tasks, task_dict_id, _ = refreshTasks()
 
                 tasks = self.api.get_tasks()
                 permanenttasks = {}
