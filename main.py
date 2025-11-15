@@ -371,6 +371,26 @@ class MainDiego:
             error_msg = fun.buildExceptionMsg(e)
             return error_msg
     
+    def TodoistHealthcare(self):
+        try:
+            today = datetime.today()
+            weekday = today.weekday()
+            task_id = 9737034949
+            task = self.tf.getTask(task_id)
+            if weekday in [0, 3, 6]:
+                if task.is_completed:
+                    self.tf.uncomplete_task(task_id)
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 10 pm')
+                    self.tf.add_reminder(task_id=task_id, minute_offset=0)
+                else:
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 10 pm')
+                
+            return f'Execution completed, day {weekday}'
+        
+        except Exception as e:
+            error_msg = fun.buildExceptionMsg(e)
+            return error_msg
+        
     def TodoistToDoLP(self, address):
         try:
             connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
@@ -493,5 +513,6 @@ if __name__ == "__main__":
     print(f'Daily execution: {main.TodoistDaily(address=os.getenv("DIEGO_EMAIL"))}')
     # print(f'SuperBet execution: {main.TodoistSuperBet(weekday=datetime.today().weekday(), hour=datetime.today().hour)}')
     # print(f'Whatsapp execution: {main.TodoistWhatsapp()}')
+    # print(f'Whatsapp execution: {main.TodoistHealthcare()}')
     # print(f'LigaPistachoToDo execution: {main.TodoistToDoLP(address=os.getenv("DIEGO_EMAIL"))}')
     # print(f'Weather execution: {main.TodoistWeather()}')
