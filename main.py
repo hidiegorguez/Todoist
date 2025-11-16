@@ -162,6 +162,7 @@ class MainDiego:
             # Weekly tasks
             for task in list(filter(lambda task: 'Weekly' in task.labels, all_tasks_v2)):
                 due = datetime.strptime(task.due['date'][:10], "%Y-%m-%d").date()
+                priority = task.priority
                 evaluate_deadline = True
                 if task.deadline is not None:
                     deadline = datetime.strptime(task.deadline['date'][:10], "%Y-%m-%d").date()
@@ -172,10 +173,12 @@ class MainDiego:
                 if not evaluate_deadline or next_sunday_from_due != deadline:
                     self.tf.update_task(task_id=task.id, deadline_date=next_sunday_from_due.strftime("%Y-%m-%d"))
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
-                if due.weekday() in [4, 5]:
+                if due.weekday() in [4, 5] and priority != self.tf.priorityInversal(2):
                     self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(2))
-                elif due.weekday() == 6:
+                elif due.weekday() == 6 and priority != self.tf.priorityInversal(1):
                     self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(1))
+                elif due.weekday() in [0, 1, 2, 3] and priority != self.tf.priorityInversal(3):
+                    self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(3))
                 
             # Similar tasks       
             similars = similar_tasks(project_ids=['2259150181',
