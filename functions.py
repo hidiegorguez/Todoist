@@ -55,8 +55,6 @@ class Task:
     completed_at: str
     added_at: str
     duration: Duration
-    # updated_at: str
-    # note_count: int
     
     def __init__(self):
         self.user_id = ""
@@ -83,8 +81,7 @@ class Task:
         self.note_count = 0
         self.day_order = 0
         self.is_collapsed = False
-    
-        
+         
 class TodoistFunctions:
     
     def __init__(self, api_token):
@@ -96,57 +93,10 @@ class TodoistFunctions:
             "X-Request-Id": str(uuid.uuid4()),
             "Authorization": f"Bearer {self.api_token}"
         }
-
-    def getProjects(self, to_dict=True):
-        data = {
-            "sync_token": "*",
-            "resource_types": json.dumps(['projects'])
-        }
-        try:
-            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
-            response.raise_for_status()  # Verifica errores HTTP
-            all_projects = response.json().get('projects', [])
-        except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}")
-            return {}, {}
-        except ValueError:
-            print("Response is not a valid JSON.")
-            return {}, {}
-
-        if to_dict:
-            projects_dict_id = {project['id']: project['name'] for project in all_projects}
-            projects_dict_name = {project['name']: project['id'] for project in all_projects}
-            return projects_dict_id, projects_dict_name
-        return all_projects
-
-    def getTasks(self, to_dict=True):
-        try:
-            active_projects_ids, _ = self.getProjects()
-            data = {
-                "sync_token": "*",
-                "resource_types": json.dumps(['items'])
-            }
-            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
-            response.raise_for_status()
-            all_tasks = response.json().get("items", [])
-        except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}")
-            return {}, {}
-        except ValueError:
-            print("Response is not a valid JSON.")
-            return {}, {}
-
-        active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
-        if to_dict:
-            projects_dict_id, _ = self.getProjects()
-            task_dict_id = {task['id']: [task['content'], projects_dict_id[task['project_id']]] for task in all_tasks}
-            task_dict_name = {task['content']: [task['id'], projects_dict_id[task['project_id']]] for task in all_tasks}
-            return task_dict_id, task_dict_name
-        return active_tasks
     
-    def getTasksv2(self, to_dict=True):
+    def get_tasks(self):
         try:
-            active_projects_ids, _ = self.getProjects()
+            active_projects_ids, _ = self.get_projects()
             data = {
                 "sync_token": "*",
                 "resource_types": json.dumps(['items'])
@@ -189,7 +139,8 @@ class TodoistFunctions:
             day_order=None,
             duration_amount=None,
             duration_unit=None,
-            ):
+        ):
+        
         try:
             data = {
                 "commands": [
@@ -242,7 +193,8 @@ class TodoistFunctions:
             parent_id=None,
             project_id=None,
             section_id=None
-            ):
+        ):
+        
         try:
             if not any([parent_id, project_id, section_id]):
                 return "Function error: Either project_id, parent_id or section_id must be provided."
@@ -277,7 +229,8 @@ class TodoistFunctions:
     def reorder_tasks(
             self,
             tasks: dict[str, int]
-            ):
+        ):
+        
         try:
             items = [{"id": task_id, "child_order": order} for task_id, order in tasks.items()]
             data = {
@@ -307,7 +260,8 @@ class TodoistFunctions:
     def delete_task(
             self,
             task_id: str
-            ):
+        ):
+        
         try:
             data = {
                 "commands": [
@@ -336,7 +290,8 @@ class TodoistFunctions:
     def complete_task(
             self,
             task_id: str
-            ):
+        ):
+        
         try:
             data = {
                 "commands": [
@@ -365,7 +320,8 @@ class TodoistFunctions:
     def uncomplete_task(
             self,
             task_id: str
-            ):
+        ):
+        
         try:
             data = {
                 "commands": [
@@ -400,7 +356,8 @@ class TodoistFunctions:
             due_timezone: str = None,
             is_forward: bool = True,
             reset_subtasks: bool = False
-            ):
+        ):
+        
         try:
             is_forward = 1 if is_forward else 0
             reset_subtasks = 1 if reset_subtasks else 0
@@ -440,6 +397,7 @@ class TodoistFunctions:
             self,
             task_id
         ):
+        
         try:
             data = {
                 "commands": [
@@ -468,7 +426,8 @@ class TodoistFunctions:
     def update_day_orders(
             self,
             ids_to_orders: dict[str, int]
-            ):
+        ):
+        
         try:
             commands = []
             for task_id, day_order in ids_to_orders.items():
@@ -496,24 +455,22 @@ class TodoistFunctions:
         
     def get_task(
             self,
-            task_id: str,
-            all_data=False
+            task_id: str
         ):
+        
         # doesn't work
         try:
-            url = f"{self.sync_url[:-5]}/items/get"
+            url = f"https://api.todoist.com/api/v1/tasks/{task_id}"
             data = {
-                "item_id": task_id
+                "task_id": task_id
             }
-            response = requests.get(url, headers=self.headers, data=data)
+            response = requests.get(url, headers=self.headers, data=json.dumps(data))
             response.raise_for_status()
             task_data = response.json().get("item")
 
             if not task_data:
+                print('Task not found.')
                 return None
-            
-            if all_data:
-                return task_data
             
             task_obj = Task()
             for key, value in task_data.items():
@@ -531,51 +488,50 @@ class TodoistFunctions:
             print(f"Function error: {e}")
             return None
 
-    def get_all_completed_tasks():
-        return None
-    
-    def quick_add_task():
-        return None
-
-    def getSections(self, to_dict=True, project_id=None):
-        data = {
-            "sync_token": "*",
-            "resource_types": json.dumps(['sections'])
-        }
+    def get_completed_tasks(
+            self,
+            limit = 30,
+            since = None,
+            until = None
+        ):
+        
         try:
-            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            active_projects_ids, _ = self.get_projects()
+            data = {
+                "sync_token": "*",
+                "resource_types": json.dumps(['items']),
+                "limit": limit,
+                "since": since,
+                "until": until
+            }
+            response = requests.post(f'{self.sync_url[:-5]}/completed/get_all', headers=self.headers, data=json.dumps(data))
             response.raise_for_status()
-            all_sections = response.json().get("sections", [])
+            all_tasks = response.json().get("items", [])
+            
         except requests.exceptions.RequestException as e:
             print(f"Request error: {e}")
             return {}, {}
         except ValueError:
             print("Response is not a valid JSON.")
             return {}, {}
+        
+        active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
+        task_objects = []
+        
+        for task_data in active_tasks:
+            task_obj = Task()
+            for key, value in task_data.items():
+                if hasattr(task_obj, key):
+                    setattr(task_obj, key, value)
+            task_objects.append(task_obj)
+        return task_objects
 
-        if project_id is not None:
-            all_sections = [section for section in all_sections if section.get('project_id') == project_id]
-
-        if to_dict:
-            sections_dict_id = {section['id']: section['name'] for section in all_sections}
-            sections_dict_name = {section['name']: section['id'] for section in all_sections}
-            return sections_dict_id, sections_dict_name
-        return all_sections
-
-    def getTask(self, id):
-        task = self.api.get_task(task_id=id)
-        return task
-
-    def createSection(self, name, project_id):
-        try:
-            section = self.api.add_section(name=name, project_id=project_id)
-            return section
-        except Exception as error:
-            return error
-
-    def add_reminder(self,
-                    task_id,
-                    minute_offset):
+    def add_reminder(
+            self,
+            task_id,
+            minute_offset
+        ):
+        
         try:
             data = {
                 "commands": [
@@ -602,6 +558,77 @@ class TodoistFunctions:
             return f"Function error: {e}"
         
         return response.json()
+    
+    def get_projects(
+            self,
+            to_dict=True
+        ):
+        
+        try:
+            data = {
+                "sync_token": "*",
+                "resource_types": json.dumps(['projects'])
+            }
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+            all_projects = response.json().get('projects', [])
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+
+        if to_dict:
+            projects_dict_id = {project['id']: project['name'] for project in all_projects}
+            projects_dict_name = {project['name']: project['id'] for project in all_projects}
+            return projects_dict_id, projects_dict_name
+        return all_projects
+    
+    def get_sections(
+            self,
+            to_dict=True,
+            project_id=None
+        ):
+        
+        try:
+            data = {
+                "sync_token": "*",
+                "resource_types": json.dumps(['sections'])
+            }
+            response = requests.post(self.sync_url, headers=self.headers, data=json.dumps(data))
+            response.raise_for_status()
+            all_sections = response.json().get("sections", [])
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+
+        if project_id is not None:
+            all_sections = [section for section in all_sections if section.get('project_id') == project_id]
+
+        if to_dict:
+            sections_dict_id = {section['id']: section['name'] for section in all_sections}
+            sections_dict_name = {section['name']: section['id'] for section in all_sections}
+            return sections_dict_id, sections_dict_name
+        return all_sections
+
+    # old methods
+    def getTask(self, id):
+        task = self.api.get_task(task_id=id)
+        return task
+
+    # old methods not used anymore (to remove later)
+    def createSection(self, name, project_id):
+        try:
+            section = self.api.add_section(name=name, project_id=project_id)
+            return section
+        except Exception as error:
+            return error
 
     def setDeadline(self, task_id, deadline: str):
         headers = {
@@ -675,30 +702,7 @@ class TodoistFunctions:
             list.remove('Long')
         return list
 
-    def getDurationLabel(self, n):
-        if n<5:
-            return 'Short'
-        if n<61:
-            return 'Med'
-        return 'Long'
-
-    def priorityInversal(self, n):
-        return 5 - n
-
-    def getCompletedTasks(self, last_days=10):
-        active_projects_ids, _ = self.getProjects()
-        end_date = datetime.now() - timedelta(days=last_days)
-        end_date_str = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-        data = {
-            "sync_token": "*",
-            "resource_types": json.dumps(['items']),
-            "filters": json.dumps({"completed": "true", "until": end_date_str})
-        }
-        response = requests.post("https://api.todoist.com/sync/v9/completed/get_all", headers=self.headers, data=json.dumps(data))
-        all_completed_tasks = response.json()["items"]
-        completed_tasks = [task for task in all_completed_tasks if task['project_id'] in active_projects_ids]
-        return completed_tasks
-
+    
 class AzureBlobFunctions:
 
     def __init__(self, api_connection_string):
@@ -706,14 +710,14 @@ class AzureBlobFunctions:
         self.blob_service_client = BlobServiceClient.from_connection_string(self.connect_str)
         self.container_client = self.blob_service_client.get_container_client('todoistcontainer')
 
-    def readCsvFromBlob(self, blob_name):
+    def read_csv_from_blob(self, blob_name):
         blob_client = self.container_client.get_blob_client(blob_name)
         blob_data = blob_client.download_blob().readall()
         data = StringIO(blob_data.decode('utf-8'))
         df = pd.read_csv(data)
         return df
 
-    def uploadCsvToBlob(self, df:pd.DataFrame, blob_name):
+    def upload_csv_to_blob(self, df:pd.DataFrame, blob_name):
         blob_client = self.container_client.get_blob_client(blob_name)
         output = StringIO()
         df.to_csv(output, index=False)
@@ -729,7 +733,17 @@ class AzureBlobFunctions:
         blob_client = self.container_client.get_blob_client(blob_name)
         blob_client.delete_blob()
 
-def jaccardCoef(cadena1, cadena2):
+def get_duration_label(n):
+    if n<5:
+        return 'Short'
+    if n<61:
+        return 'Med'
+    return 'Long'
+
+def priority_inversal(n):
+    return 5 - n
+
+def jaccard_coef(cadena1, cadena2):
     set_cadena1 = set(cadena1.split())
     set_cadena2 = set(cadena2.split())
 
@@ -739,18 +753,18 @@ def jaccardCoef(cadena1, cadena2):
     coeficiente = interseccion / union
     return coeficiente
 
-def areSimilar(cadena1, cadena2, umbral=0.5):
-    coeficiente = jaccardCoef(cadena1, cadena2)
+def are_similar(cadena1, cadena2, umbral=0.5):
+    coeficiente = jaccard_coef(cadena1, cadena2)
     if coeficiente >= umbral:
         return f'{cadena1} & {cadena2}'
 
-def getNextMonday():
+def get_next_monday():
     _today = datetime.now()
     days_to_monday = (0 - _today.weekday()) % 7 
     closer_monday = _today + timedelta(days=days_to_monday)
     return closer_monday
 
-def sendEmail(subject, body, to):
+def send_email(subject, body, to):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
     usuario = os.getenv('ECLIPSE_EMAIL')
@@ -774,7 +788,7 @@ def sendEmail(subject, body, to):
         print(f"Error sending email: {e}")
         raise e
 
-def buildExceptionMsg(e: Exception):
+def build_exception_msg(e: Exception):
     tb = e.__traceback__
     while tb.tb_next:
         tb = tb.tb_next

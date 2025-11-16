@@ -50,8 +50,8 @@ class MainDiego:
             az = fun.AzureBlobFunctions(connect_str)
             
             # Projects, sections and tasks
-            projects_dict_id, _ = self.tf.getProjects()
-            all_tasks_v2 = self.tf.getTasksv2(to_dict=False)
+            projects_dict_id, _ = self.tf.get_projects()
+            all_tasks_v2 = self.tf.get_tasks(to_dict=False)
             
             label_names=[]
             for task in all_tasks_v2:
@@ -69,7 +69,7 @@ class MainDiego:
                         project_tasks.append(task.content)
                 for i in range(len(project_tasks)-1):
                     for j in range(i+1,len(project_tasks)):
-                        message = fun.areSimilar(project_tasks[i], project_tasks[j], umbral=umbral) 
+                        message = fun.are_similar(project_tasks[i], project_tasks[j], umbral=umbral) 
                         if message != None and message != 'Agua & Agua' and message != 'Tweet & Tweet' and message != 'README & README' and message != 'Trabajo & Trabajo':
                             similars.append(message)
                 return similars 
@@ -89,7 +89,7 @@ class MainDiego:
             
             # Add duration labels
             for task in list(filter(lambda task: task.duration is not None and all(label not in task.labels for label in ['Long', 'Med', 'Short']), all_tasks_v2)):
-                new_label = self.tf.getDurationLabel(task.duration['amount'])
+                new_label = fun.get_duration_label(task.duration['amount'])
                 self.tf.update_task(task_id=task.id,
                                     labels=task.labels+[new_label])
                 message = f'{task.content}'
@@ -99,7 +99,7 @@ class MainDiego:
             for task in list(filter(lambda task: task.project_id == '2258455386' and 'Work' not in task.labels, all_tasks_v2)):
                 self.tf.update_task(task_id=task.id,
                                     content=task.content[0].upper()+task.content[1:],
-                                    priority=self.tf.priorityInversal(3),
+                                    priority=fun.priority_inversal(3),
                                     due_string="today")
                 message = f'Task "{task.content}" moved out from the inbox'
                 self.tf.move_task(task_id=task.id,
@@ -136,7 +136,7 @@ class MainDiego:
                     if vacation_day > today + timedelta(days=3):
                         self.api.add_task(content=f'Preparar maleta {title}',
                                           due_string=f"3 dias antes de {task.due['date']}",
-                                          priority=self.tf.priorityInversal(2), #orange
+                                          priority=fun.priority_inversal(2), #orange
                                           labels=['Long', 'Home'],
                                           project_id='2258518194')
                         message = f'Task "Preparar maleta {title}" created succesfully'
@@ -146,7 +146,7 @@ class MainDiego:
                     if task.due['string'][-14:-8] == "fin 20" or task.due['string'][-17:-8] == 'ending 20':        
                         self.api.add_task(content=f'Apuntar gastos {title}',
                                           due_string=f"1 dia despues de {task.due['string'][-10:]}",
-                                          priority=self.tf.priorityInversal(3), #blue
+                                          priority=fun.priority_inversal(3), #blue
                                           labels=['Phone', 'PC', 'Long'],
                                           project_id='2258518194')
                         message = f'Task "Apuntar gastos {title}" created succesfully'
@@ -173,12 +173,12 @@ class MainDiego:
                 if not evaluate_deadline or next_sunday_from_due != deadline:
                     self.tf.update_task(task_id=task.id, deadline_date=next_sunday_from_due.strftime("%Y-%m-%d"))
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
-                if due.weekday() in [4, 5] and priority != self.tf.priorityInversal(2):
-                    self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(2))
-                elif due.weekday() == 6 and priority != self.tf.priorityInversal(1):
-                    self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(1))
-                elif due.weekday() in [0, 1, 2, 3] and priority != self.tf.priorityInversal(3):
-                    self.tf.update_task(task_id=task.id, priority=self.tf.priorityInversal(3))
+                if due.weekday() in [4, 5] and priority != fun.priority_inversal(2):
+                    self.tf.update_task(task_id=task.id, priority=fun.priority_inversal(2))
+                elif due.weekday() == 6 and priority != fun.priority_inversal(1):
+                    self.tf.update_task(task_id=task.id, priority=fun.priority_inversal(1))
+                elif due.weekday() in [0, 1, 2, 3] and priority != fun.priority_inversal(3):
+                    self.tf.update_task(task_id=task.id, priority=fun.priority_inversal(3))
                 
             # Similar tasks       
             similars = similar_tasks(project_ids=['2259150181',
@@ -190,7 +190,7 @@ class MainDiego:
             if weekday == 0:
                 similars_blob = []
             else:
-                similars_df = az.readCsvFromBlob(blob_name='similartasks/similartasksdiego.csv')
+                similars_df = az.read_csv_from_blob(blob_name='similartasks/similartasksdiego.csv')
                 similars_blob = list(similars_df['similar'].values)
             if similars != []:
                 for similar in similars:
@@ -198,7 +198,7 @@ class MainDiego:
                         similar_msgs.append(f'- {similar}')
                         similars_blob.append(similar)
                 similars_df = pd.DataFrame(similars, columns=["similar"])
-                az.uploadCsvToBlob(df=similars_df, blob_name='similartasks/similartasksdiego.csv')
+                az.upload_csv_to_blob(df=similars_df, blob_name='similartasks/similartasksdiego.csv')
                 
 
             # Fantasy
@@ -218,7 +218,7 @@ class MainDiego:
                     #         try:
                     #             fantasydate = datetime.strptime(self.tf.getTask('4632052423').due.date, '%Y-%m-%d')
                     #             matchday = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
-                    #             if fantasydate > matchday > fun.getNextMonday():
+                    #             if fantasydate > matchday > fun.get_next_monday():
                     #                 message = 'Fantasy task moved to Tuesday'
                     #                 fantasy_msg.append(message) 
                     #                 self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
@@ -234,7 +234,7 @@ class MainDiego:
                             fantasy_task = list(filter(lambda task: task.id == '4632052423', all_tasks_v2))[0]
                             fantasydate = datetime.strptime(fantasy_task.due['date'][:10], '%Y-%m-%d')
                             matchday = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
-                            if fantasydate > matchday > fun.getNextMonday():
+                            if fantasydate > matchday > fun.get_next_monday():
                                 message = 'Fantasy task moved to Tuesday'
                                 fantasy_msg.append(message) 
                                 self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
@@ -248,7 +248,7 @@ class MainDiego:
             update_permanenttasksdiego = True
             permanenttasks_route = 'recurringtasks/recurringtasksdiego.csv'
             try:
-                df_permanenttasks = az.readCsvFromBlob(permanenttasks_route)
+                df_permanenttasks = az.read_csv_from_blob(permanenttasks_route)
             except Exception as e:
                 message = f'Error reading permanent tasks from blob: {e}'
                 update_permanenttasksdiego = False
@@ -258,20 +258,21 @@ class MainDiego:
                 permanenttasks = df_permanenttasks.set_index('task_id')['project_id'].to_dict()
                 permanenttasks = {str(k): str(v) for k, v in permanenttasks.items()}
                 
-                completed_tasks = self.tf.getCompletedTasks(3)
+                completed_tasks = self.tf.get_completed_tasks(limit=100, since=(today.date() - timedelta(days=3)).isoformat())
+                
                 uncompleted_tasks = []
                 for task in completed_tasks:
-                    task_id = task['task_id']
-                    project_id = task['project_id']
+                    task_id = task.id
+                    project_id = task.project_id
                     if not any(filter(lambda task: task.id == task_id, all_tasks_v2)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
                         self.tf.update_task(task_id=task_id,
-                                             due_string="No date")
+                                            due_string="No date")
                         message = f'Task "{self.tf.getTask(id=task_id).content}" uncompleted'
                         if project_id == '2259406345':
-                            self.tf.moveTask(task_id=task_id,
-                                            project_id='2263729931')
+                            self.tf.move_task(task_id=task_id,
+                                              project_id='2263729931')
                             message += f' and moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
                         permanenttasks_msg.append("- " + message)
 
@@ -282,7 +283,7 @@ class MainDiego:
                         permanenttasks[task.id] = task.project_id
                 df_permanenttasks = pd.DataFrame.from_dict({'task_id':permanenttasks.keys(),'project_id':permanenttasks.values()})       
                 try:
-                    az.uploadCsvToBlob(df_permanenttasks, permanenttasks_route)
+                    az.upload_csv_to_blob(df_permanenttasks, permanenttasks_route)
                 except:
                     permanenttasks_msg.append("Error saving permanent tasks")
 
@@ -311,17 +312,17 @@ class MainDiego:
             
             # Mail
             try:
-                fun.sendEmail(subject="Daily Todoist", body=body, to=address)
+                fun.send_email(subject="Daily Todoist", body=body, to=address)
                 return f'{body}\n\nAnd mail sent correctly'
             
             except Exception as e:
-                error_msg = fun.buildExceptionMsg(e)
+                error_msg = fun.build_exception_msg(e)
                 return f'{body}\n\nAnd error sending mail: {error_msg}'
         
         except Exception as e:
             try:
-                error_msg = fun.buildExceptionMsg(e)
-                fun.sendEmail("Daily Todoist - Error", error_msg, address)
+                error_msg = fun.build_exception_msg(e)
+                fun.send_email("Daily Todoist - Error", error_msg, address)
                 return error_msg
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
@@ -351,7 +352,7 @@ class MainDiego:
             return f'Execution completed, day {weekday}, hour {hour}'
         
         except Exception as e:
-            error_msg = fun.buildExceptionMsg(e)
+            error_msg = fun.build_exception_msg(e)
             return error_msg
         
     def TodoistWhatsapp(self):
@@ -371,7 +372,7 @@ class MainDiego:
             return f'Execution completed, day {weekday}'
         
         except Exception as e:
-            error_msg = fun.buildExceptionMsg(e)
+            error_msg = fun.build_exception_msg(e)
             return error_msg
     
     def TodoistHealthcare(self):
@@ -391,75 +392,75 @@ class MainDiego:
             return f'Execution completed, day {weekday}'
         
         except Exception as e:
-            error_msg = fun.buildExceptionMsg(e)
+            error_msg = fun.build_exception_msg(e)
             return error_msg
         
     def TodoistToDoLP(self, address):
         try:
-            connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-            az = fun.AzureBlobFunctions(connect_str)
+    #         connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    #         az = fun.AzureBlobFunctions(connect_str)
             
-            def refreshTasks():
-                all_tasks = self.tf.getTasks(to_dict=False)
-                task_dict_id, task_dict_name = self.tf.getTasks()
-                return all_tasks, task_dict_id, task_dict_name
+    #         def refreshTasks():
+    #             all_tasks = self.tf.getTasks(to_dict=False)
+    #             task_dict_id, task_dict_name = self.tf.getTasks()
+    #             return all_tasks, task_dict_id, task_dict_name
             
-            _, _, task_dict_name = refreshTasks()
+    #         _, _, task_dict_name = refreshTasks()
             
-            todo_df = az.readCsvFromBlob('todoligapistacho.csv')
+    #         todo_df = az.read_csv_from_blob('todoligapistacho.csv')
             
-            task_names = todo_df['Name'].values
-            created_tasks = []
-            edited_tasks = []
-            for task_name in task_names:
-                task_name_cap = task_name.capitalize().rstrip()
-                task_labels = todo_df[todo_df["Name"] == task_name]["Labels"].values[0].split(" / ")
-                task_labels = [task.rstrip() for task in task_labels]
-                task_description = todo_df[todo_df['Name'] == task_name]['Link'].values[0]
-                if task_name_cap in task_dict_name.keys():
-                    task_id = task_dict_name[task_name_cap][0]
-                    task = self.tf.getTask(id=task_id)
-                    if set(task_labels) != set(task.labels):
-                        print(f'Task {task_name_cap} has different labels. From {task.labels} to {task_labels}')
-                        self.tf.update_task(task_id=task_id, labels=task_labels)
-                        edited_tasks.append(task_name_cap)
-                    # else:
-                    #     print(f'Task {task_name_cap} already there')
-                else:
-                    self.api.add_task(content=task_name_cap,
-                                      labels=task_labels,
-                                      priority=self.tf.priorityInversal(3),
-                                      description=task_description,
-                                      project_id='2330796907')
-                    created_tasks.append(task_name_cap) 
-                    print(f'{task_name_cap} created')
-            body = ""
-            if created_tasks != []:
-                items = ""
-                for task in created_tasks:
-                    items += f'\n- {task}'
-                body += f'New tasks:\n {items}\n\n\n'
-            if edited_tasks != []:
-                items = ""
-                for task in edited_tasks:
-                    items += f'\n- {task}'
-                body += f'Updated tasks:\n {items}\n\n\n' 
-            if body == "":
-                body = 'No changes'
-            fun.sendEmail("Todoist ToDo LP", body, address)
+    #         task_names = todo_df['Name'].values
+    #         created_tasks = []
+    #         edited_tasks = []
+    #         for task_name in task_names:
+    #             task_name_cap = task_name.capitalize().rstrip()
+    #             task_labels = todo_df[todo_df["Name"] == task_name]["Labels"].values[0].split(" / ")
+    #             task_labels = [task.rstrip() for task in task_labels]
+    #             task_description = todo_df[todo_df['Name'] == task_name]['Link'].values[0]
+    #             if task_name_cap in task_dict_name.keys():
+    #                 task_id = task_dict_name[task_name_cap][0]
+    #                 task = self.tf.getTask(id=task_id)
+    #                 if set(task_labels) != set(task.labels):
+    #                     print(f'Task {task_name_cap} has different labels. From {task.labels} to {task_labels}')
+    #                     self.tf.update_task(task_id=task_id, labels=task_labels)
+    #                     edited_tasks.append(task_name_cap)
+    #                 # else:
+    #                 #     print(f'Task {task_name_cap} already there')
+    #             else:
+    #                 self.api.add_task(content=task_name_cap,
+    #                                   labels=task_labels,
+    #                                   priority=fun.priority_inversal(3),
+    #                                   description=task_description,
+    #                                   project_id='2330796907')
+    #                 created_tasks.append(task_name_cap) 
+    #                 print(f'{task_name_cap} created')
+    #         body = ""
+    #         if created_tasks != []:
+    #             items = ""
+    #             for task in created_tasks:
+    #                 items += f'\n- {task}'
+    #             body += f'New tasks:\n {items}\n\n\n'
+    #         if edited_tasks != []:
+    #             items = ""
+    #             for task in edited_tasks:
+    #                 items += f'\n- {task}'
+    #             body += f'Updated tasks:\n {items}\n\n\n' 
+    #         if body == "":
+    #             body = 'No changes'
+    #         fun.send_email("Todoist ToDo LP", body, address)
             return True
             
         except Exception as e:
             try:
-                error_msg = fun.buildExceptionMsg(e)
-                fun.sendEmail("Todoist ToDo LP - Error", error_msg, address)
+                error_msg = fun.build_exception_msg(e)
+                fun.send_email("Todoist ToDo LP - Error", error_msg, address)
                 return error_msg
             except Exception as e2:
                 return f'{error_msg}\n\nAnd error sending error mail: {e2}'
  
     def TodoistWeather(self):
         try:
-            all_tasks = self.tf.getTasks(to_dict=False)
+            all_tasks = self.tf.get_tasks()
             
             api_key = os.getenv('OPEN_WEATHER_API_KEY')
             city_name = 'Colmenarejo'
@@ -480,12 +481,12 @@ class MainDiego:
                     sun_end = today.replace(hour=16, minute=0)
                     for task in all_tasks:
                         try:
-                            if 'Outside' in task['labels'] and today_str in task['due']['date'] and task['priority'] in [3, 4]:
+                            if 'Outside' in task.labels and today_str in task.due['date'] and task.priority in [3, 4]:
                                 if '15:30' in task['due']['date']:
                                     return f'Task not created beacuse of time'
-                                elif task['duration']['amount'] > 0:
-                                    task_init = datetime.strptime(task['due']['date'], '%Y-%m-%dT%H:%M:%S')
-                                    task_end = task_init + timedelta(minutes=task['duration']['amount'])
+                                elif task.duration['amount'] > 0:
+                                    task_init = datetime.strptime(task.due['date'], '%Y-%m-%dT%H:%M:%S')
+                                    task_end = task_init + timedelta(minutes=task.duration['amount'])
                                     if task_init < sun_end and task_end > sun_start:
                                         return f'Task not created beacuse of time'
                         except:
@@ -507,7 +508,7 @@ class MainDiego:
                 return f'Error getting data: {response.status_code}'
                 
         except Exception as e:
-            error_msg = fun.buildExceptionMsg(e)
+            error_msg = fun.build_exception_msg(e)
             return error_msg
 
                
