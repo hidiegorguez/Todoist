@@ -51,7 +51,7 @@ class MainDiego:
             
             # Projects, sections and tasks
             projects_dict_id, _ = self.tf.get_projects()
-            all_tasks_v2 = self.tf.get_tasks(to_dict=False)
+            all_tasks_v2 = self.tf.get_tasks()
             
             label_names=[]
             for task in all_tasks_v2:
