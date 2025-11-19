@@ -51,20 +51,12 @@ class MainDiego:
             
             # Projects, sections and tasks
             projects_dict_id, _ = self.tf.get_projects()
-            all_tasks_v2 = self.tf.get_tasks()
-            
-            label_names=[]
-            for task in all_tasks_v2:
-                gross_labels=task.labels
-                for label in gross_labels:
-                    if label not in label_names:
-                        label_names.append(label)
-            label_names
+            all_tasks = self.tf.get_tasks()
 
             def similar_tasks(project_ids, umbral=0.5):
                 project_tasks = []
                 similars = []
-                for task in all_tasks_v2:
+                for task in all_tasks:
                     if task.project_id not in project_ids:
                         project_tasks.append(task.content)
                 for i in range(len(project_tasks)-1):
@@ -75,12 +67,12 @@ class MainDiego:
                 return similars 
             
             # Remove Work label
-            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2316607649', all_tasks_v2)):
+            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2316607649', all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     labels=[label for label in task.labels if label != 'Work'])
                 
             # Remove Work label and move from the inbox
-            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2258455386', all_tasks_v2)):
+            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2258455386', all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     labels=[label for label in task.labels if label != 'Work'],
                                     due_string="today")
@@ -88,7 +80,7 @@ class MainDiego:
                                   project_id='2316607649')
             
             # Add duration labels
-            for task in list(filter(lambda task: task.duration is not None and all(label not in task.labels for label in ['Long', 'Med', 'Short']), all_tasks_v2)):
+            for task in list(filter(lambda task: task.duration is not None and all(label not in task.labels for label in ['Long', 'Med', 'Short']), all_tasks)):
                 new_label = fun.get_duration_label(task.duration['amount'])
                 self.tf.update_task(task_id=task.id,
                                     labels=task.labels+[new_label])
@@ -96,7 +88,7 @@ class MainDiego:
                 duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
             # Move out from the inbox
-            for task in list(filter(lambda task: task.project_id == '2258455386' and 'Work' not in task.labels, all_tasks_v2)):
+            for task in list(filter(lambda task: task.project_id == '2258455386' and 'Work' not in task.labels, all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     content=task.content[0].upper()+task.content[1:],
                                     priority=fun.priority_inversal(3),
@@ -107,14 +99,14 @@ class MainDiego:
                 inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
             
             # Capitalize title
-            for task in list(filter(lambda task: task.content[0].upper() != task.content[0], all_tasks_v2)):
+            for task in list(filter(lambda task: task.content[0].upper() != task.content[0], all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     content=task.content[0].upper()+task.content[1:])
                 message = f'{task.content}'
                 capitalization_msgs.append('- '+message.split(' updated correctly to ')[-1])
             
             # Birthday labels
-            for task in list(filter(lambda task: task.project_id == '2259726698' and task.labels != ['Phone','Short'], all_tasks_v2)):
+            for task in list(filter(lambda task: task.project_id == '2259726698' and task.labels != ['Phone','Short'], all_tasks)):
                 try:
                     month = task.due['date'][5:7]
                     day = task.due['date'][8:10]
@@ -129,9 +121,9 @@ class MainDiego:
                     birthday_msgs.append(f"Task '{task.content}' probably does not have a proper due_string")
             
             # Suitcase and expenses tasks
-            for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '2259406345', all_tasks_v2)):
+            for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '2259406345', all_tasks)):
                 title = task.content
-                if not any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks_v2)):
+                if not any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks)):
                     vacation_day = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
                     if vacation_day > today + timedelta(days=3):
                         self.api.add_task(content=f'Preparar maleta {title}',
@@ -142,7 +134,7 @@ class MainDiego:
                         message = f'Task "Preparar maleta {title}" created succesfully'
                         suitcase_msgs.append("- "+message)
                         
-                if not any(filter(lambda t: t.content == f'Apuntar gastos {title}', all_tasks_v2)):
+                if not any(filter(lambda t: t.content == f'Apuntar gastos {title}', all_tasks)):
                     if task.due['string'][-14:-8] == "fin 20" or task.due['string'][-17:-8] == 'ending 20':        
                         self.api.add_task(content=f'Apuntar gastos {title}',
                                           due_string=f"1 dia despues de {task.due['string'][-10:]}",
@@ -160,7 +152,7 @@ class MainDiego:
                 self.tf.update_task(task_id=task_id, due_string=f'today at 6 am')
 
             # Weekly tasks
-            for task in list(filter(lambda task: 'Weekly' in task.labels, all_tasks_v2)):
+            for task in list(filter(lambda task: 'Weekly' in task.labels, all_tasks)):
                 due = datetime.strptime(task.due['date'][:10], "%Y-%m-%d").date()
                 priority = task.priority
                 evaluate_deadline = True
@@ -229,9 +221,9 @@ class MainDiego:
                     # ----------------------------------
                             
                     # --------- new version ------------
-                    for task in filter(lambda task: task.section_id == '51988025' and task.parent_id == '9283550716', all_tasks_v2):
+                    for task in filter(lambda task: task.section_id == '51988025' and task.parent_id == '9283550716', all_tasks):
                         try:
-                            fantasy_task = list(filter(lambda task: task.id == '4632052423', all_tasks_v2))[0]
+                            fantasy_task = list(filter(lambda task: task.id == '4632052423', all_tasks))[0]
                             fantasydate = datetime.strptime(fantasy_task.due['date'][:10], '%Y-%m-%d')
                             matchday = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
                             if fantasydate > matchday > fun.get_next_monday():
@@ -264,7 +256,7 @@ class MainDiego:
                 for task in completed_tasks:
                     task_id = task.id
                     project_id = task.project_id
-                    if not any(filter(lambda task: task.id == task_id, all_tasks_v2)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
+                    if not any(filter(lambda task: task.id == task_id, all_tasks)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
                         self.tf.update_task(task_id=task_id,
