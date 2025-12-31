@@ -348,40 +348,40 @@ class MainDiego:
             error_msg = fun.build_exception_msg(e)
             return error_msg
         
-    def TodoistWhatsapp(self):
+    def TodoistHiddenNightTasks(self):
         try:
             today = datetime.today()
             weekday = today.weekday()
-            task_id = 8821892607
-            task = self.tf.getTask(task_id)
-            if weekday in [2, 4, 6]:
-                if task.is_completed:
-                    self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 9 pm')
-                    self.tf.add_reminder(task_id=task_id, minute_offset=0)
+            task_time = 'today at 9 pm'
+            wh_task_id = 8821892607
+            health_task_id = 9737034949
+            apps_task_id = 9872095356
+            wh_task = self.tf.getTask(wh_task_id)
+            health_task = self.tf.getTask(health_task_id)
+            apps_task = self.tf.getTask(apps_task_id)
+            if weekday == 6:
+                if apps_task.is_completed:
+                    self.tf.uncomplete_task(apps_task_id)
+                    self.tf.update_task(task_id=apps_task_id, due_string=task_time)
+                    self.tf.add_reminder(task_id=apps_task_id, minute_offset=0)
                 else:
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 9 pm')
-                
-            return f'Execution completed, day {weekday}'
-        
-        except Exception as e:
-            error_msg = fun.build_exception_msg(e)
-            return error_msg
-    
-    def TodoistHealthcare(self):
-        try:
-            today = datetime.today()
-            weekday = today.weekday()
-            task_id = 9737034949
-            task = self.tf.getTask(task_id)
-            if weekday in [0, 3, 6]:
-                if task.is_completed:
-                    self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 10 pm')
-                    self.tf.add_reminder(task_id=task_id, minute_offset=0)
+                    self.tf.update_task(task_id=apps_task_id, due_string=task_time)
+                activate_wh_task = True
+                activate_healt_task = True
+            elif weekday in [2, 4] | activate_wh_task:
+                if wh_task.is_completed:
+                    self.tf.uncomplete_task(wh_task_id)
+                    self.tf.update_task(task_id=wh_task_id, due_string=task_time)
+                    self.tf.add_reminder(task_id=wh_task_id, minute_offset=0)
                 else:
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 10 pm')
-                
+                    self.tf.update_task(task_id=wh_task_id, due_string=task_time)
+            elif weekday in [0, 3] | activate_healt_task:
+                if health_task.is_completed:
+                    self.tf.uncomplete_task(health_task_id)
+                    self.tf.update_task(task_id=health_task_id, due_string=task_time)
+                    self.tf.add_reminder(task_id=health_task_id, minute_offset=0)
+                else:
+                    self.tf.update_task(task_id=health_task_id, due_string=task_time)
             return f'Execution completed, day {weekday}'
         
         except Exception as e:
