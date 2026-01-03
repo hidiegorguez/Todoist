@@ -204,24 +204,6 @@ class MainDiego:
                 evaluate = False
             if evaluate:
                 if weekday in [0,5,6] and self.tf.getTask('4632052423').due.date != today.strftime('%Y-%m-%d'):
-                    
-                    # --------- old version ------------
-                    # for task in all_tasks:
-                    #     if task['section_id'] == '51988025' and task['parent_id'] == '9283550716':
-                    #         try:
-                    #             fantasydate = datetime.strptime(self.tf.getTask('4632052423').due.date, '%Y-%m-%d')
-                    #             matchday = datetime.strptime(task['due']['date'][:10], '%Y-%m-%d')
-                    #             if fantasydate > matchday > fun.get_next_monday():
-                    #                 message = 'Fantasy task moved to Tuesday'
-                    #                 fantasy_msg.append(message) 
-                    #                 self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
-                    #                 # all_tasks, task_dict_id, _ = refreshTasks()
-                    #                 break
-                    #         except TypeError: # due date is None, not matchdate released yet
-                    #             pass
-                    # ----------------------------------
-                            
-                    # --------- new version ------------
                     for task in filter(lambda task: task.section_id == '51988025' and task.parent_id == '9283550716', all_tasks):
                         try:
                             fantasy_task = list(filter(lambda task: task.id == '4632052423', all_tasks))[0]
@@ -231,11 +213,9 @@ class MainDiego:
                                 message = 'Fantasy task moved to Tuesday'
                                 fantasy_msg.append(message) 
                                 self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
-                                # all_tasks, task_dict_id, _ = refreshTasks()
                                 break
                         except TypeError: # due date is None, not matchdate released yet
                             pass
-                    # ---------------------------------
                 
             # Permanent tasks
             update_permanenttasksdiego = True
@@ -251,13 +231,13 @@ class MainDiego:
                 permanenttasks = df_permanenttasks.set_index('task_id')['project_id'].to_dict()
                 permanenttasks = {str(k): str(v) for k, v in permanenttasks.items()}
                 
-                completed_tasks = self.tf.get_completed_tasks(limit=100, since=(today.date() - timedelta(days=3)).isoformat())
+                completed_tasks = self.tf.get_completed_tasks(limit=300, since=(today.date() - timedelta(days=60)).isoformat())
                 
                 uncompleted_tasks = []
-                for task in completed_tasks:
-                    task_id = task.id
+                for task in list(filter(lambda task: 'Permanent' in task.content, completed_tasks)):
+                    task_id = task.task_id
                     project_id = task.project_id
-                    if not any(filter(lambda task: task.id == task_id, all_tasks)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
+                    if not any(filter(lambda t: t.id == task_id, all_tasks)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
                         self.tf.update_task(task_id=task_id,

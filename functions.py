@@ -56,6 +56,17 @@ class Task:
     added_at: str
     duration: Duration
     
+class CompletedTask:
+    id: str
+    user_id: str
+    project_id: str
+    section_id: str
+    content: str
+    completed_at: str
+    task_id: str
+    note_count: int
+    meta_data: str
+    
     def __init__(self):
         self.user_id = ""
         self.id = ""
@@ -112,7 +123,7 @@ class TodoistFunctions:
             return {}, {}
         active_tasks = [task for task in all_tasks if task['project_id'] in active_projects_ids]
         task_objects = []
-        # tiene que haber una mejor forma de convertir dict a objeto
+        
         for task_data in active_tasks:
             task_obj = Task()
             for key, value in task_data.items():
@@ -519,9 +530,9 @@ class TodoistFunctions:
         task_objects = []
         
         for task_data in active_tasks:
-            task_obj = Task()
+            task_obj = CompletedTask()
             for key, value in task_data.items():
-                if hasattr(task_obj, key):
+                if hasattr(task_obj, key) or key == 'task_id':
                     setattr(task_obj, key, value)
             task_objects.append(task_obj)
         return task_objects
