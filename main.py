@@ -231,7 +231,7 @@ class MainDiego:
                 permanenttasks = df_permanenttasks.set_index('task_id')['project_id'].to_dict()
                 permanenttasks = {str(k): str(v) for k, v in permanenttasks.items()}
                 
-                completed_tasks = self.tf.get_completed_tasks(limit=300, since=(today.date() - timedelta(days=60)).isoformat())
+                completed_tasks = self.tf.get_completed_tasks(limit=100, since=(today.date() - timedelta(days=3)).isoformat())
                 
                 uncompleted_tasks = []
                 for task in list(filter(lambda task: 'Permanent' in task.content, completed_tasks)):

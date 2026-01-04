@@ -56,17 +56,6 @@ class Task:
     added_at: str
     duration: Duration
     
-class CompletedTask:
-    id: str
-    user_id: str
-    project_id: str
-    section_id: str
-    content: str
-    completed_at: str
-    task_id: str
-    note_count: int
-    meta_data: str
-    
     def __init__(self):
         self.user_id = ""
         self.id = ""
@@ -92,6 +81,28 @@ class CompletedTask:
         self.note_count = 0
         self.day_order = 0
         self.is_collapsed = False
+    
+class CompletedTask:
+    id: str
+    task_id: str
+    user_id: str
+    project_id: str
+    section_id: str
+    content: str
+    completed_at: str
+    note_count: int
+    meta_data: str
+    
+    def __init__(self):
+        self.id = ""
+        self.task_id = ""
+        self.user_id = ""
+        self.project_id = ""
+        self.section_id = ""
+        self.content = ""
+        self.completed_at = ""
+        self.note_count = 0
+        self.meta_data = ""
          
 class TodoistFunctions:
     
@@ -503,7 +514,8 @@ class TodoistFunctions:
             self,
             limit = 30,
             since = None,
-            until = None
+            until = None,
+            offset = 0,
         ):
         
         try:
@@ -513,7 +525,8 @@ class TodoistFunctions:
                 "resource_types": json.dumps(['items']),
                 "limit": limit,
                 "since": since,
-                "until": until
+                "until": until,
+                "offset": offset
             }
             response = requests.post(f'{self.sync_url[:-5]}/completed/get_all', headers=self.headers, data=json.dumps(data))
             response.raise_for_status()
