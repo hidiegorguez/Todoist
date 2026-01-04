@@ -339,6 +339,8 @@ class MainDiego:
             wh_task = self.tf.getTask(wh_task_id)
             health_task = self.tf.getTask(health_task_id)
             apps_task = self.tf.getTask(apps_task_id)
+            activate_wh_task = False
+            activate_healt_task = False
             if weekday == 6:
                 if apps_task.is_completed:
                     self.tf.uncomplete_task(apps_task_id)
