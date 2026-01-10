@@ -641,90 +641,10 @@ class TodoistFunctions:
             return sections_dict_id, sections_dict_name
         return all_sections
 
-    # old methods
+    # old methods (must be removed eventually)
     def getTask(self, id):
         task = self.api.get_task(task_id=id)
         return task
-
-    # old methods not used anymore (to remove later)
-    def createSection(self, name, project_id):
-        try:
-            section = self.api.add_section(name=name, project_id=project_id)
-            return section
-        except Exception as error:
-            return error
-
-    def setDeadline(self, task_id, deadline: str):
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_token}",
-        }
-        commands = [
-            {
-                "type": "item_update",
-                "uuid": str(uuid.uuid4()),
-                "args": {
-                    "id": task_id,
-                    "deadline": {
-                        "date": deadline
-                    }
-                }
-            }
-        ]
-        data = {"commands": commands}
-        response = requests.post(self.sync_url, headers=headers, json=data)
-        return response.json()
-
-    def completeTask(self, id):
-        try:
-            self.api.close_task(id)
-            print(f'Task {id} is now completed')
-        except:
-            print(f'Task {id} was not possible to complete')
-            
-    def uncompleteTask(self, id):
-        try:
-            self.api.reopen_task(id)
-            print(f'Task {id} is now uncompleted')
-        except:
-            print(f'Task {id} was not possible to uncomplete')
-
-    def moveTask(self, task_id, project_id, section_id=None, parent_id=None):
-        # Yet to check section and father task
-        try:
-            headers = {
-                "Authorization": f"Bearer {self.api_token}"
-            }
-            data = {
-                "commands": [{
-                    "type": "item_move",
-                    "uuid": str(uuid.uuid4()),
-                    "args": {
-                        "id": task_id,
-                        "project_id": project_id
-                    }
-                }]
-            }
-            response = requests.post(self.sync_url, json=data, headers=headers)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}")
-            return {}
-        except ValueError:
-            print("Response is not a valid JSON.")
-            return {}
-
-    def getLabelsWithoutDuration(self, task_id):
-        task = self.getTask(task_id)
-        list = task.labels
-        if 'Short' in list:
-            list.remove('Short')
-        if 'Med' in list:
-            list.remove('Med')
-        if 'Long' in list:
-            list.remove('Long')
-        return list
 
     
 class AzureBlobFunctions:
