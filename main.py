@@ -350,14 +350,14 @@ class MainDiego:
                     self.tf.update_task(task_id=apps_task_id, due_string=task_time)
                 activate_wh_task = True
                 activate_healt_task = True
-            elif weekday in [2, 4] | activate_wh_task:
+            elif weekday in [2, 4] or activate_wh_task:
                 if wh_task.is_completed:
                     self.tf.uncomplete_task(wh_task_id)
                     self.tf.update_task(task_id=wh_task_id, due_string=task_time)
                     self.tf.add_reminder(task_id=wh_task_id, minute_offset=0)
                 else:
                     self.tf.update_task(task_id=wh_task_id, due_string=task_time)
-            elif weekday in [0, 3] | activate_healt_task:
+            elif weekday in [0, 3] or activate_healt_task:
                 if health_task.is_completed:
                     self.tf.uncomplete_task(health_task_id)
                     self.tf.update_task(task_id=health_task_id, due_string=task_time)
