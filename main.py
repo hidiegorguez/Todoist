@@ -150,6 +150,15 @@ class MainDiego:
             if task.is_completed:
                 self.tf.uncomplete_task(task_id)
                 self.tf.update_task(task_id=task_id, due_string=f'today at 6 am')
+                
+            
+            # Breakfast task
+            task_id = 9994688647
+            task = self.tf.getTask(task_id)
+            if weekday in [0, 2, 5, 6]:
+                if task.is_completed:
+                    self.tf.uncomplete_task(task_id)
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 9 am')
 
             # Weekly tasks
             for task in list(filter(lambda task: 'Weekly' in task.labels, all_tasks)):
