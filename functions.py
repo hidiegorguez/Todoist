@@ -706,24 +706,24 @@ class TodoistFunctions:
             task_objects.append(task_obj)
         return task_objects
     
-    def get_completed_tasks_sdk(
+    def get_completed_tasks_by_completion_date(
             self,
-            limit = 30,
-            since = None,
-            until = None,
-            offset = 0,
+            since,
+            until,
+            limit = 50,
         ):
         try:
             all_tasks = []
-            for task_batch in self.api.get_completed_tasks(limit=limit, since=since, until=until, offset=offset):
+            for task_batch in self.api.get_completed_tasks_by_completion_date(limit=limit, since=since, until=until):
                 all_tasks.extend(task_batch)
-            
+          
+            return all_tasks  
         except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}")
-            return {}, {}
+            return f"Request error: {e}"
         except ValueError:
-            print("Response is not a valid JSON.")
-            return {}, {}
+            return "Response is not a valid JSON."
+        except Exception as e:
+            return f"Function error: {e}"
 
     def add_reminder(
             self,
