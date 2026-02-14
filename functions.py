@@ -158,6 +158,59 @@ class TodoistFunctions:
         active_tasks = [task for task in all_tasks if task.project_id in active_projects_ids]
         return active_tasks
 
+    def add_task_sdk(
+            self,
+            content,
+            description=None,
+            project_id=None,
+            section_id=None,
+            parent_id=None,
+            labels=None,
+            priority=None,
+            due_string=None,
+            due_lang=None,
+            due_date=None,
+            due_datetime=None,
+            assignee_id=None,
+            order=None,
+            auto_reminder=None,
+            auto_parse_labels=None,
+            duration=None,
+            duration_unit=None,
+            deadline_date=None,
+            deadline_lang=None,
+        ):
+        try:
+            task = self.api.add_task(
+                content=content,
+                description=description,
+                project_id=project_id,
+                section_id=section_id,
+                parent_id=parent_id,
+                labels=labels,
+                priority=priority,
+                due_string=due_string,
+                due_lang=due_lang,
+                due_date=due_date,
+                due_datetime=due_datetime,
+                assignee_id=assignee_id,
+                order=order,
+                auto_reminder=auto_reminder,
+                auto_parse_labels=auto_parse_labels,
+                duration=duration,
+                duration_unit=duration_unit,
+                deadline_date=deadline_date,
+                deadline_lang=deadline_lang
+                
+            )
+            return task
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {e.status_code}: {e.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+    
     def update_task(
             self,
             task_id,
@@ -457,6 +510,21 @@ class TodoistFunctions:
         
         return response.json()
 
+    def uncomplete_task_sdk(
+            self,
+            task_id: str
+        ):
+        
+        try:
+            self.api.uncomplete_task(task_id=task_id)
+            
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {e.status_code}: {e.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+
     def complete_recurring_task(
             self,
             task_id: str,
@@ -637,6 +705,25 @@ class TodoistFunctions:
                     setattr(task_obj, key, value)
             task_objects.append(task_obj)
         return task_objects
+    
+    def get_completed_tasks_sdk(
+            self,
+            limit = 30,
+            since = None,
+            until = None,
+            offset = 0,
+        ):
+        try:
+            all_tasks = []
+            for task_batch in self.api.get_completed_tasks(limit=limit, since=since, until=until, offset=offset):
+                all_tasks.extend(task_batch)
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
 
     def add_reminder(
             self,
@@ -670,7 +757,26 @@ class TodoistFunctions:
             return f"Function error: {e}"
         
         return response.json()
-    
+  
+    def add_reminder_sdk(
+            self,
+            task_id,
+            minute_offset
+        ):
+        try:
+            self.api.add_reminder(
+                item_id=task_id,
+                minute_offset=minute_offset,
+                type="relative"
+            )
+            
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {e.status_code}: {e.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+
     def get_projects(
             self,
             to_dict=True
