@@ -50,7 +50,7 @@ class MainDiego:
             az = fun.AzureBlobFunctions(connect_str)
             
             # Projects, sections and tasks
-            projects_dict_id, _ = self.tf.get_projects()
+            projects_dict_id, _ = self.tf.get_projects_sdk()
             all_tasks = self.tf.get_tasks()
 
             def similar_tasks(project_ids, umbral=0.5):

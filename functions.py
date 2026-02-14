@@ -610,6 +610,29 @@ class TodoistFunctions:
             return projects_dict_id, projects_dict_name
         return all_projects
     
+    def get_projects_sdk(
+            self,
+            to_dict=True
+        ):
+        
+        try:
+            all_projects = []
+            for project_batch in self.api.get_projects():
+                all_projects.extend(project_batch)
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+
+        if to_dict:
+            projects_dict_id = {project.id: project.name for project in all_projects}
+            projects_dict_name = {project.name: project.id for project in all_projects}
+            return projects_dict_id, projects_dict_name
+        return all_projects
+    
     def get_sections(
             self,
             to_dict=True,
