@@ -51,7 +51,7 @@ class MainDiego:
             
             # Projects, sections and tasks
             projects_dict_id, _ = self.tf.get_projects_sdk()
-            all_tasks = self.tf.get_tasks()
+            all_tasks = self.tf.get_tasks_sdk()
 
             def similar_tasks(project_ids, umbral=0.5):
                 project_tasks = []
@@ -67,50 +67,50 @@ class MainDiego:
                 return similars 
             
             # Remove Work label
-            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2316607649', all_tasks)):
-                self.tf.update_task(task_id=task.id,
+            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '6Q7XxhMv85jvw69M', all_tasks)):
+                self.tf.update_task_sdk(task_id=task.id,
                                     labels=[label for label in task.labels if label != 'Work'])
                 
             # Remove Work label and move from the inbox
-            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '2258455386', all_tasks)):
-                self.tf.update_task(task_id=task.id,
+            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '6Crcvw8HFvwxMCqc', all_tasks)):
+                self.tf.update_task_sdk(task_id=task.id,
                                     labels=[label for label in task.labels if label != 'Work'],
                                     due_string="today")
-                self.tf.move_task(task_id=task.id,
-                                  project_id='2316607649')
+                self.tf.move_task_sdk(task_id=task.id,
+                                  project_id='6Q7XxhMv85jvw69M')
             
             # Add duration labels
             for task in list(filter(lambda task: task.duration is not None and all(label not in task.labels for label in ['Long', 'Med', 'Short']), all_tasks)):
                 new_label = fun.get_duration_label(task.duration['amount'])
-                self.tf.update_task(task_id=task.id,
+                self.tf.update_task_sdk(task_id=task.id,
                                     labels=task.labels+[new_label])
                 message = f'{task.content}'
                 duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
             # Move out from the inbox
-            for task in list(filter(lambda task: task.project_id == '2258455386' and 'Work' not in task.labels, all_tasks)):
-                self.tf.update_task(task_id=task.id,
+            for task in list(filter(lambda task: task.project_id == '6Crcvw8HFvwxMCqc' and 'Work' not in task.labels, all_tasks)):
+                self.tf.update_task_sdk(task_id=task.id,
                                     content=task.content[0].upper()+task.content[1:],
                                     priority=fun.priority_inversal(3),
                                     due_string="today")
                 message = f'Task "{task.content}" moved out from the inbox'
-                self.tf.move_task(task_id=task.id,
-                                  project_id='2298494169')
+                self.tf.move_task_sdk(task_id=task.id,
+                                  project_id='6JqmRWG4gxwvmgRg')
                 inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
             
             # Capitalize title
             for task in list(filter(lambda task: task.content[0].upper() != task.content[0], all_tasks)):
-                self.tf.update_task(task_id=task.id,
+                self.tf.update_task_sdk(task_id=task.id,
                                     content=task.content[0].upper()+task.content[1:])
                 message = f'{task.content}'
                 capitalization_msgs.append('- '+message.split(' updated correctly to ')[-1])
             
             # Birthday labels
-            for task in list(filter(lambda task: task.project_id == '2259726698' and task.labels != ['Phone','Short'], all_tasks)):
+            for task in list(filter(lambda task: task.project_id == '6Crcvw8HRWFQ4cw3' and task.labels != ['Phone','Short'], all_tasks)):
                 try:
                     month = task.due['date'][5:7]
                     day = task.due['date'][8:10]
-                    self.tf.update_task(task_id=task.id,
+                    self.tf.update_task_sdk(task_id=task.id,
                                         due_string=f'cada {day} {month} 23:00',
                                         labels=['Phone','Short'])
                     message = f'{task.content}'
@@ -121,7 +121,7 @@ class MainDiego:
                     birthday_msgs.append(f"Task '{task.content}' probably does not have a proper due_string")
             
             # Suitcase and expenses tasks
-            for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '2259406345', all_tasks)):
+            for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '6Crcvw8HQm7HhcFv', all_tasks)):
                 title = task.content
                 if not any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks)):
                     vacation_day = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
@@ -130,7 +130,7 @@ class MainDiego:
                                           due_string=f"3 dias antes de {task.due['date']}",
                                           priority=fun.priority_inversal(2), #orange
                                           labels=['Long', 'Home'],
-                                          project_id='2258518194')
+                                          project_id='6Crcvw8HP8h84jJV')
                         message = f'Task "Preparar maleta {title}" created succesfully'
                         suitcase_msgs.append("- "+message)
                         
@@ -140,25 +140,25 @@ class MainDiego:
                                           due_string=f"1 dia despues de {task.due['string'][-10:]}",
                                           priority=fun.priority_inversal(3), #blue
                                           labels=['Phone', 'PC', 'Long'],
-                                          project_id='2258518194')
+                                          project_id='6Crcvw8HP8h84jJV')
                         message = f'Task "Apuntar gastos {title}" created succesfully'
                         expenses_msgs.append("- "+message)
             
             # Counter task
-            task_id = 8326227450
-            task = self.tf.getTask(task_id)
+            task_id = '6W4Q22F3fgF7mMf6'
+            task = self.tf.get_task_sdk(task_id)
             if task.is_completed:
                 self.tf.uncomplete_task(task_id)
-                self.tf.update_task(task_id=task_id, due_string=f'today at 6 am')
+                self.tf.update_task_sdk(task_id=task_id, due_string=f'today at 6 am')
                 
             
             # Breakfast task
-            task_id = 9994688647
-            task = self.tf.getTask(task_id)
+            task_id = '6fwqMHR8Q59j76Jc'
+            task = self.tf.get_task_sdk(task_id)
             if weekday in [0, 2, 5, 6]:
                 if task.is_completed:
                     self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 9 am')
+                    self.tf.update_task_sdk(task_id=task_id, due_string=f'today at 9 am')
 
             # Weekly tasks
             for task in list(filter(lambda task: 'Weekly' in task.labels, all_tasks)):
@@ -172,22 +172,22 @@ class MainDiego:
                 days_until_sunday_from_due = (6 - due.weekday()) % 7
                 next_sunday_from_due = due + timedelta(days=days_until_sunday_from_due)
                 if not evaluate_deadline or next_sunday_from_due != deadline:
-                    self.tf.update_task(task_id=task.id, deadline_date=next_sunday_from_due.strftime("%Y-%m-%d"))
+                    self.tf.update_task_sdk(task_id=task.id, deadline_date=next_sunday_from_due.strftime("%Y-%m-%d"))
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
-                if task.project_id != '2334806408':
+                if task.project_id != '6VW5PFC4hgwP8RVP':
                     if due.weekday() in [4, 5] and priority != fun.priority_inversal(2):
-                        self.tf.update_task(task_id=task.id, priority=fun.priority_inversal(2))
+                        self.tf.update_task_sdk(task_id=task.id, priority=fun.priority_inversal(2))
                     elif due.weekday() == 6 and priority != fun.priority_inversal(1):
-                        self.tf.update_task(task_id=task.id, priority=fun.priority_inversal(1))
+                        self.tf.update_task_sdk(task_id=task.id, priority=fun.priority_inversal(1))
                     elif due.weekday() in [0, 1, 2, 3] and priority != fun.priority_inversal(3):
-                        self.tf.update_task(task_id=task.id, priority=fun.priority_inversal(3))
+                        self.tf.update_task_sdk(task_id=task.id, priority=fun.priority_inversal(3))
                 
             # Similar tasks       
-            similars = similar_tasks(project_ids=['2259150181',
-                                                 '2269361803',
-                                                 '2259111397',
-                                                 '2332125933',
-                                                 '2320233020'],
+            similars = similar_tasks(project_ids=['6Crcvw8HQ7pGFH8v',
+                                                 '6Crcvw8HPWrHFWMx',
+                                                 '',
+                                                 '',
+                                                 ''],
                                        umbral=0.7)
             if weekday == 0:
                 similars_blob = []
@@ -205,23 +205,24 @@ class MainDiego:
 
             # Fantasy
             evaluate = True
-            if self.tf.getTask('4632052423').is_completed == True:
-                self.tf.uncomplete_task('4632052423')
-                self.tf.update_task(task_id='4632052423', due_string='every friday 20:00')
+            fantasy_task_id = '66V2HG92vFgV7Q2x'
+            if self.tf.get_task_sdk(fantasy_task_id).is_completed == True:
+                self.tf.uncomplete_task(fantasy_task_id)
+                self.tf.update_task_sdk(task_id=fantasy_task_id, due_string='every friday 20:00')
                 message = 'Fantasy task moved back to weekends'
                 fantasy_msg.append(message)
                 evaluate = False
             if evaluate:
-                if weekday in [0,5,6] and self.tf.getTask('4632052423').due.date != today.strftime('%Y-%m-%d'):
-                    for task in filter(lambda task: task.section_id == '51988025' and task.parent_id == '9283550716', all_tasks):
+                if weekday in [0,5,6] and self.tf.get_task_sdk(fantasy_task_id).due.date != today.strftime('%Y-%m-%d'):
+                    for task in filter(lambda task: task.section_id == '65VQ7M3vHH6q3FCw' and task.parent_id == '6cFCJHXxwmQR3v9M', all_tasks):
                         try:
-                            fantasy_task = list(filter(lambda task: task.id == '4632052423', all_tasks))[0]
+                            fantasy_task = list(filter(lambda task: task.id == fantasy_task_id, all_tasks))[0]
                             fantasydate = datetime.strptime(fantasy_task.due['date'][:10], '%Y-%m-%d')
                             matchday = datetime.strptime(task.due['date'][:10], '%Y-%m-%d')
                             if fantasydate > matchday > fun.get_next_monday():
                                 message = 'Fantasy task moved to Tuesday'
                                 fantasy_msg.append(message) 
-                                self.tf.update_task(task_id='4632052423', due_string="Tuesday 7 pm")
+                                self.tf.update_task_sdk(task_id=fantasy_task_id, due_string="Tuesday 7 pm")
                                 break
                         except TypeError: # due date is None, not matchdate released yet
                             pass
@@ -249,13 +250,13 @@ class MainDiego:
                     if not any(filter(lambda t: t.id == task_id, all_tasks)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
                         self.tf.uncomplete_task(task_id)
                         uncompleted_tasks.append(task_id)
-                        self.tf.update_task(task_id=task_id,
+                        self.tf.update_task_sdk(task_id=task_id,
                                             due_string="No date")
-                        message = f'Task "{self.tf.getTask(id=task_id).content}" uncompleted'
-                        if project_id == '2259406345':
-                            self.tf.move_task(task_id=task_id,
-                                              project_id='2263729931')
-                            message += f' and moved from {projects_dict_id["2259406345"]} to {projects_dict_id["2263729931"]}'
+                        message = f'Task "{self.tf.get_task_sdk(id=task_id).content}" uncompleted'
+                        if project_id == '6Crcvw8HQm7HhcFv':
+                            self.tf.move_task_sdk(task_id=task_id,
+                                              project_id='6F63g3w6f352G8P4')
+                            message += f' and moved from {projects_dict_id["6Crcvw8HQm7HhcFv"]} to {projects_dict_id["6F63g3w6f352G8P4"]}'
                         permanenttasks_msg.append("- " + message)
 
                 tasks = self.api.get_tasks()
@@ -314,20 +315,20 @@ class MainDiego:
             today = datetime.today()
             weekday = today.weekday()
             edited = False
-            task_id = 8554028033
-            task = self.tf.getTask(task_id)
+            task_id = '6WX594CXh843hx76'
+            task = self.tf.get_task_sdk(task_id)
             if task.is_completed:
                 if weekday in [0, 4] and hour in [16, 17]:
                     self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 7 pm')
+                    self.tf.update_task_sdk(task_id=task_id, due_string=f'today at 7 pm')
                     edited = True
                 elif weekday in [1, 2, 3] and hour in [14, 15]:
                     self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 5 pm')
+                    self.tf.update_task_sdk(task_id=task_id, due_string=f'today at 5 pm')
                     edited = True
                 elif weekday in [5, 6] and hour in [10, 11]:
                     self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 1 pm')
+                    self.tf.update_task_sdk(task_id=task_id, due_string=f'today at 1 pm')
                     edited = True
                 if edited:
                     self.tf.add_reminder(task_id=task_id, minute_offset=0)
@@ -342,37 +343,37 @@ class MainDiego:
             today = datetime.today()
             weekday = today.weekday()
             task_time = 'today at 9 pm'
-            wh_task_id = 8821892607
-            health_task_id = 9737034949
-            apps_task_id = 9872095356
-            wh_task = self.tf.getTask(wh_task_id)
-            health_task = self.tf.getTask(health_task_id)
-            apps_task = self.tf.getTask(apps_task_id)
+            wh_task_id = '6X9345CxhcVwWqc7'
+            health_task_id = '6fH8GhMx2R9HRq5c'
+            apps_task_id = '6fg2gfqGP2gR5Fjc'
+            wh_task = self.tf.get_task_sdk(wh_task_id)
+            health_task = self.tf.get_task_sdk(health_task_id)
+            apps_task = self.tf.get_task_sdk(apps_task_id)
             activate_wh_task = False
             activate_healt_task = False
             if weekday == 6:
                 if apps_task.is_completed:
                     self.tf.uncomplete_task(apps_task_id)
-                    self.tf.update_task(task_id=apps_task_id, due_string=task_time)
+                    self.tf.update_task_sdk(task_id=apps_task_id, due_string=task_time)
                     self.tf.add_reminder(task_id=apps_task_id, minute_offset=0)
                 else:
-                    self.tf.update_task(task_id=apps_task_id, due_string=task_time)
+                    self.tf.update_task_sdk(task_id=apps_task_id, due_string=task_time)
                 activate_wh_task = True
                 activate_healt_task = True
             elif weekday in [2, 4] or activate_wh_task:
                 if wh_task.is_completed:
                     self.tf.uncomplete_task(wh_task_id)
-                    self.tf.update_task(task_id=wh_task_id, due_string=task_time)
+                    self.tf.update_task_sdk(task_id=wh_task_id, due_string=task_time)
                     self.tf.add_reminder(task_id=wh_task_id, minute_offset=0)
                 else:
-                    self.tf.update_task(task_id=wh_task_id, due_string=task_time)
+                    self.tf.update_task_sdk(task_id=wh_task_id, due_string=task_time)
             elif weekday in [0, 3] or activate_healt_task:
                 if health_task.is_completed:
                     self.tf.uncomplete_task(health_task_id)
-                    self.tf.update_task(task_id=health_task_id, due_string=task_time)
+                    self.tf.update_task_sdk(task_id=health_task_id, due_string=task_time)
                     self.tf.add_reminder(task_id=health_task_id, minute_offset=0)
                 else:
-                    self.tf.update_task(task_id=health_task_id, due_string=task_time)
+                    self.tf.update_task_sdk(task_id=health_task_id, due_string=task_time)
             return f'Execution completed, day {weekday}'
         
         except Exception as e:
@@ -385,8 +386,8 @@ class MainDiego:
     #         az = fun.AzureBlobFunctions(connect_str)
             
     #         def refreshTasks():
-    #             all_tasks = self.tf.getTasks(to_dict=False)
-    #             task_dict_id, task_dict_name = self.tf.getTasks()
+    #             all_tasks = self.tf.get_task_sdks(to_dict=False)
+    #             task_dict_id, task_dict_name = self.tf.get_task_sdks()
     #             return all_tasks, task_dict_id, task_dict_name
             
     #         _, _, task_dict_name = refreshTasks()
@@ -403,10 +404,10 @@ class MainDiego:
     #             task_description = todo_df[todo_df['Name'] == task_name]['Link'].values[0]
     #             if task_name_cap in task_dict_name.keys():
     #                 task_id = task_dict_name[task_name_cap][0]
-    #                 task = self.tf.getTask(id=task_id)
+    #                 task = self.tf.get_task_sdk(id=task_id)
     #                 if set(task_labels) != set(task.labels):
     #                     print(f'Task {task_name_cap} has different labels. From {task.labels} to {task_labels}')
-    #                     self.tf.update_task(task_id=task_id, labels=task_labels)
+    #                     self.tf.update_task_sdk(task_id=task_id, labels=task_labels)
     #                     edited_tasks.append(task_name_cap)
     #                 # else:
     #                 #     print(f'Task {task_name_cap} already there')
@@ -476,11 +477,11 @@ class MainDiego:
                         except:
                             pass
                     
-                    task_id = 8841964065
-                    task = self.tf.getTask(task_id)
+                    task_id = '6XCPqCqfmV4g424G'
+                    task = self.tf.get_task_sdk(task_id)
                     if task.is_completed:
                         self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 15:30', duration_amount=30, duration_unit='minute')
+                    self.tf.update_task_sdk(task_id=task_id, due_string=f'today at 15:30', duration_amount=30, duration_unit='minute')
                     self.tf.add_reminder(task_id=task_id, minute_offset=30)
                     
                     return f'Task created'

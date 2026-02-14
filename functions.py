@@ -143,6 +143,21 @@ class TodoistFunctions:
             task_objects.append(task_obj)
         return task_objects
 
+    def get_tasks_sdk(self):
+        try:
+            active_projects_ids, _ = self.get_projects_sdk()
+            all_tasks = []
+            for task_batch in self.api.get_tasks():
+                all_tasks.extend(task_batch)
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+        active_tasks = [task for task in all_tasks if task.project_id in active_projects_ids]
+        return active_tasks
+
     def update_task(
             self,
             task_id,
@@ -209,6 +224,53 @@ class TodoistFunctions:
         
         return response.json()
     
+    def update_task_sdk(
+            self,
+            task_id,
+            content=None,
+            description=None,
+            labels=None,
+            priority=None,
+            due_string=None,
+            due_lang=None,
+            due_date=None,
+            due_datetime=None,
+            assignee_id=None,
+            day_order=None,
+            duration=None,
+            collapsed=None,
+            duration_unit=None,
+            deadline_date=None,
+            deadline_lang=None,
+        ):
+        try:
+            self.api.update_task(
+                task_id=task_id,
+                content=content,
+                description=description,
+                labels=labels,
+                priority=priority,
+                due_string=due_string,
+                due_lang=due_lang,
+                due_date=due_date,
+                due_datetime=due_datetime,
+                assignee_id=assignee_id,
+                day_order=day_order,
+                duration=duration,
+                collapsed=collapsed,
+                duration_unit=duration_unit,
+                deadline_date=deadline_date,
+                deadline_lang=deadline_lang
+            )
+            
+        
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {e.status_code}: {e.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
+        
     def move_task(
             self,
             task_id,
@@ -247,6 +309,32 @@ class TodoistFunctions:
             return f"Function error: {e}"
         
         return response.json()
+    
+    def move_task_sdk(
+            self,
+            task_id,
+            parent_id=None,
+            project_id=None,
+            section_id=None
+        ):
+        
+        try:
+            if not any([parent_id, project_id, section_id]):
+                return "Function error: Either project_id, parent_id or section_id must be provided."
+            
+            self.api.move_task(
+                task_id=task_id,
+                parent_id=parent_id,
+                project_id=project_id,
+                section_id=section_id
+            )
+            
+        except requests.exceptions.HTTPError as e:
+            return f"Error HTTP {e.status_code}: {e.text}"
+        except requests.exceptions.RequestException as e:
+            return f"Request error: {e}"
+        except Exception as e:
+            return f"Function error: {e}"
     
     def reorder_tasks(
             self,
@@ -664,11 +752,47 @@ class TodoistFunctions:
             return sections_dict_id, sections_dict_name
         return all_sections
 
-    # old methods (must be removed eventually)
+    def get_sections_sdk(
+            self,
+            to_dict=True,
+            project_id=None
+        ):
+        try:
+            all_sections = []
+            for section_batch in self.api.get_sections():
+                all_sections.extend(section_batch)
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return {}, {}
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return {}, {}
+        if project_id is not None:
+            all_sections = [section for section in all_sections if section.project_id == project_id]
+        if to_dict:
+            sections_dict_id = {section.id: section.name for section in all_sections}
+            sections_dict_name = {section.name: section.id for section in all_sections}
+            return sections_dict_id, sections_dict_name
+        return all_sections
+    
     def getTask(self, id):
         task = self.api.get_task(task_id=id)
         return task
-
+    
+    def get_task_sdk(self, id):
+        try:
+            task = self.api.get_task(task_id=id)
+            return task
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return None
+        except ValueError:
+            print("Response is not a valid JSON.")
+            return None
+        except Exception as e:
+            print(f"Function error: {e}")
+            return None
     
 class AzureBlobFunctions:
 
