@@ -81,7 +81,7 @@ class MainDiego:
             
             # Add duration labels
             for task in list(filter(lambda task: task.duration is not None and all(label not in task.labels for label in ['Long', 'Med', 'Short']), all_tasks)):
-                new_label = fun.get_duration_label(task.duration['amount'])
+                new_label = fun.get_duration_label(task.duration.amount)
                 self.tf.update_task(task_id=task.id,
                                     labels=task.labels+[new_label])
                 message = f'{task.content}'
@@ -467,11 +467,11 @@ class MainDiego:
                     for task in all_tasks:
                         try:
                             if 'Outside' in task.labels and today_str in task.due.date and task.priority in [3, 4]:
-                                if '15:30' in task['due'].date:
+                                if '15:30' in task.due.date:
                                     return f'Task not created beacuse of time'
-                                elif task.duration['amount'] > 0:
+                                elif task.duration.amount > 0:
                                     task_init = datetime.strptime(task.due.date, '%Y-%m-%dT%H:%M:%S')
-                                    task_end = task_init + timedelta(minutes=task.duration['amount'])
+                                    task_end = task_init + timedelta(minutes=task.duration.amount)
                                     if task_init < sun_end and task_end > sun_start:
                                         return f'Task not created beacuse of time'
                         except:
