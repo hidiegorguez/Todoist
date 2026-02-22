@@ -172,7 +172,7 @@ class MainDiego:
                 days_until_sunday_from_due = (6 - due.weekday()) % 7
                 next_sunday_from_due = due + timedelta(days=days_until_sunday_from_due)
                 if not evaluate_deadline or next_sunday_from_due != deadline:
-                    self.tf.update_task(task_id=task.id, deadline_date=next_sunday_from_due.strftime("%Y-%m-%d"))
+                    self.tf.update_task(task_id=task.id, deadline_date=next_sunday_from_due)
                     weekly_deadlines_msgs.append(f'- Task "{task.content}" moved to {next_sunday_from_due.strftime("%Y-%m-%d")}')
                 if task.project_id != '6VW5PFC4hgwP8RVP':
                     if due.weekday() in [4, 5] and priority != fun.priority_inversal(2):
