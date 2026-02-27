@@ -481,7 +481,7 @@ class MainDiego:
                     task = self.tf.get_task(task_id)
                     if task.is_completed:
                         self.tf.uncomplete_task(task_id)
-                    self.tf.update_task(task_id=task_id, due_string=f'today at 15:30', duration_amount=30, duration_unit='minute')
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 15:30', duration=30, duration_unit='minute')
                     self.tf.add_reminder(task_id=task_id, minute_offset=30)
                     
                     return f'Task created'
