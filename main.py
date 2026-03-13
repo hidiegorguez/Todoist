@@ -228,47 +228,20 @@ class MainDiego:
                             pass
                 
             # Permanent tasks
-            update_permanenttasksdiego = True
-            permanenttasks_route = 'recurringtasks/recurringtasksdiego.csv'
-            try:
-                df_permanenttasks = az.read_csv_from_blob(permanenttasks_route)
-            except Exception as e:
-                message = f'Error reading permanent tasks from blob: {e}'
-                update_permanenttasksdiego = False
-                permanenttasks_msg.append(message)
-                
-            if update_permanenttasksdiego:
-                permanenttasks = df_permanenttasks.set_index('task_id')['project_id'].to_dict()
-                permanenttasks = {str(k): str(v) for k, v in permanenttasks.items()}
-                
-                completed_tasks = self.tf.get_completed_tasks_by_completion_date(limit=100, since=(today - timedelta(days=10)), until=today)
-                
-                uncompleted_tasks = []
-                for task in list(filter(lambda task: 'Permanent' in task.content, completed_tasks)):
-                    task_id = task.task_id
-                    project_id = task.project_id
-                    if not any(filter(lambda t: t.id == task_id, all_tasks)) and task_id not in uncompleted_tasks and task_id in permanenttasks.keys():
-                        self.tf.uncomplete_task(task_id)
-                        uncompleted_tasks.append(task_id)
-                        self.tf.update_task(task_id=task_id,
-                                            due_string="No date")
-                        message = f'Task "{self.tf.get_task(id=task_id).content}" uncompleted'
-                        if project_id == '6Crcvw8HQm7HhcFv':
-                            self.tf.move_task(task_id=task_id,
-                                              project_id='6F63g3w6f352G8P4')
-                            message += f' and moved from {projects_dict_id["6Crcvw8HQm7HhcFv"]} to {projects_dict_id["6F63g3w6f352G8P4"]}'
-                        permanenttasks_msg.append("- " + message)
-
-                tasks = self.tf.get_tasks()
-                permanenttasks = {}
-                for task in tasks:
-                    if 'Permanent' in task.labels:
-                        permanenttasks[task.id] = task.project_id
-                df_permanenttasks = pd.DataFrame.from_dict({'task_id':permanenttasks.keys(),'project_id':permanenttasks.values()})       
-                try:
-                    az.upload_csv_to_blob(df_permanenttasks, permanenttasks_route)
-                except:
-                    permanenttasks_msg.append("Error saving permanent tasks")
+            completed_tasks = self.tf.get_completed_tasks_by_completion_date(limit=100, since=(today - timedelta(days=10)), until=today)
+            
+            uncompleted_tasks = []
+            for task in list(filter(lambda task: 'Permanent' in task.content, completed_tasks)):
+                task_id = task.task_id
+                project_id = task.project_id
+                self.tf.uncomplete_task(task_id)
+                uncompleted_tasks.append(task_id)
+                self.tf.update_task(task_id=task_id, due_string="No date")
+                message = f'Task "{self.tf.get_task(id=task_id).content}" uncompleted'
+                if project_id == '6Crcvw8HQm7HhcFv':
+                    self.tf.move_task(task_id=task_id, project_id='6F63g3w6f352G8P4')
+                    message += f' and moved from {projects_dict_id["6Crcvw8HQm7HhcFv"]} to {projects_dict_id["6F63g3w6f352G8P4"]}'
+                permanenttasks_msg.append("- " + message)
 
             # Results
             body = messages[0] + "\n"
