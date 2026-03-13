@@ -230,14 +230,12 @@ class MainDiego:
             # Permanent tasks
             completed_tasks = self.tf.get_completed_tasks_by_completion_date(limit=100, since=(today - timedelta(days=10)), until=today)
             
-            uncompleted_tasks = []
-            for task in list(filter(lambda task: 'Permanent' in task.content, completed_tasks)):
-                task_id = task.task_id
+            for task in list(filter(lambda task: 'Permanent' in task.labels, completed_tasks)):
+                task_id = task.id
                 project_id = task.project_id
                 self.tf.uncomplete_task(task_id)
-                uncompleted_tasks.append(task_id)
                 self.tf.update_task(task_id=task_id, due_string="No date")
-                message = f'Task "{self.tf.get_task(id=task_id).content}" uncompleted'
+                message = f'Task "{task.content}" uncompleted'
                 if project_id == '6Crcvw8HQm7HhcFv':
                     self.tf.move_task(task_id=task_id, project_id='6F63g3w6f352G8P4')
                     message += f' and moved from {projects_dict_id["6Crcvw8HQm7HhcFv"]} to {projects_dict_id["6F63g3w6f352G8P4"]}'
