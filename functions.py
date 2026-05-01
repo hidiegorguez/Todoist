@@ -1,5 +1,7 @@
 import os
 import smtplib
+import traceback
+import sys
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -15,8 +17,13 @@ load_dotenv()
 
 
 class TodoistException(Exception):
-    """Excepción personalizada para errores de Todoist."""
-    pass
+    """Excepción personalizada para errores de Todoist con contexto detallado."""
+    def __init__(self, message: str, context: dict = None):
+        super().__init__(message)
+        self.message = message
+        self.context = context or {}
+        self.timestamp = datetime.now().isoformat()
+        self.traceback_str = traceback.format_exc()
 
 
 class TodoistFunctions:
@@ -28,14 +35,37 @@ class TodoistFunctions:
 
     def _handle_exception(self, e: Exception) -> None:
         """Maneja las excepciones de forma consistente lanzando TodoistException."""
+        context = {
+            'service': 'Todoist API',
+            'original_exception_type': type(e).__name__,
+            'timestamp': datetime.now().isoformat(),
+        }
+        
         if isinstance(e, requests.exceptions.HTTPError):
-            raise TodoistException(f"HTTP Error {e.response.status_code}: {e.response.text}") from e
+            context['status_code'] = e.response.status_code if hasattr(e, 'response') else 'N/A'
+            context['response_text'] = e.response.text if hasattr(e, 'response') else 'N/A'
+            message = f"Todoist API HTTP Error {context['status_code']}: {context['response_text']}"
+            raise TodoistException(message, context=context) from e
+        elif isinstance(e, requests.exceptions.ConnectionError):
+            message = f"Todoist connection error: {e}"
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
+        elif isinstance(e, requests.exceptions.Timeout):
+            message = f"Todoist timeout error: {e}"
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
         elif isinstance(e, requests.exceptions.RequestException):
-            raise TodoistException(f"Request error: {e}") from e
+            message = f"Todoist request error: {e}"
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
         elif isinstance(e, ValueError):
-            raise TodoistException("Response is not valid JSON.") from e
+            message = "Todoist response is not valid JSON."
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
         else:
-            raise TodoistException(f"Unexpected error: {e}") from e
+            message = f"Todoist unexpected error: {e}"
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
 
     def get_projects(self, to_dict: bool = True):
         """
@@ -399,28 +429,67 @@ class AzureBlobFunctions:
         self.blob_service_client = BlobServiceClient.from_connection_string(self.connect_str)
         self.container_client = self.blob_service_client.get_container_client('todoistcontainer')
 
-    def read_csv_from_blob(self, blob_name):
-        blob_client = self.container_client.get_blob_client(blob_name)
-        blob_data = blob_client.download_blob().readall()
-        data = StringIO(blob_data.decode('utf-8'))
-        df = pd.read_csv(data)
-        return df
+    def _handle_azure_exception(self, e: Exception, operation: str) -> None:
+        """Maneja excepciones de Azure Blob Storage de forma específica."""
+        context = {
+            'service': 'Azure Blob Storage',
+            'operation': operation,
+            'original_exception_type': type(e).__name__,
+            'timestamp': datetime.now().isoformat(),
+        }
+        
+        if isinstance(e, requests.exceptions.HTTPError):
+            context['status_code'] = e.response.status_code if hasattr(e, 'response') else 'N/A'
+            context['response_text'] = e.response.text if hasattr(e, 'response') else 'N/A'
+            message = f"Azure Blob Storage HTTP Error {context['status_code']}: {context['response_text']}"
+            raise TodoistException(message, context=context) from e
+        elif isinstance(e, requests.exceptions.ConnectionError):
+            message = f"Azure Connection error: {e}"
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
+        elif isinstance(e, requests.exceptions.Timeout):
+            message = f"Azure Timeout error: {e}"
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
+        else:
+            message = f"Azure operation '{operation}' failed: {e}"
+            context['error_details'] = str(e)
+            raise TodoistException(message, context=context) from e
 
-    def upload_csv_to_blob(self, df:pd.DataFrame, blob_name):
-        blob_client = self.container_client.get_blob_client(blob_name)
-        output = StringIO()
-        df.to_csv(output, index=False)
-        output.seek(0)
-        blob_client.upload_blob(output.getvalue(), overwrite=True)
+    def read_csv_from_blob(self, blob_name):
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            blob_data = blob_client.download_blob().readall()
+            data = StringIO(blob_data.decode('utf-8'))
+            df = pd.read_csv(data)
+            return df
+        except Exception as e:
+            self._handle_azure_exception(e, f"read_csv_from_blob('{blob_name}')")
+
+    def upload_csv_to_blob(self, df: pd.DataFrame, blob_name):
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            output = StringIO()
+            df.to_csv(output, index=False)
+            output.seek(0)
+            blob_client.upload_blob(output.getvalue(), overwrite=True)
+        except Exception as e:
+            self._handle_azure_exception(e, f"upload_csv_to_blob('{blob_name}')")
         
     def list_blobs_in_container(self):
-        blob_list = self.container_client.list_blobs()
-        blobs = [blob.name for blob in blob_list]
-        return blobs
+        try:
+            blob_list = self.container_client.list_blobs()
+            blobs = [blob.name for blob in blob_list]
+            return blobs
+        except Exception as e:
+            self._handle_azure_exception(e, "list_blobs_in_container()")
     
     def delete_blob(self, blob_name):
-        blob_client = self.container_client.get_blob_client(blob_name)
-        blob_client.delete_blob()
+        try:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            blob_client.delete_blob()
+        except Exception as e:
+            self._handle_azure_exception(e, f"delete_blob('{blob_name}')")
 
 def get_duration_label(n):
     if n<5:
@@ -477,10 +546,111 @@ def send_email(subject, body, to):
         print(f"Error sending email: {e}")
         raise e
 
-def build_exception_msg(e: Exception):
-    tb = e.__traceback__
-    while tb.tb_next:
-        tb = tb.tb_next
-    line = tb.tb_lineno
-    file = tb.tb_frame.f_code.co_filename
-    return f"Error in {file}, line {line}:\n {e}"
+def build_exception_msg(e: Exception) -> str:
+    """
+    Construye un mensaje detallado de excepción con traceback completo.
+    
+    Args:
+        e: La excepción a procesar.
+    
+    Returns:
+        str: Mensaje detallado formateado para correo.
+    """
+    msg_parts = []
+    msg_parts.append("=" * 80)
+    msg_parts.append("ERROR DETALLADO")
+    msg_parts.append("=" * 80)
+    
+    # Información básica
+    msg_parts.append(f"\nTipo de error: {type(e).__name__}")
+    msg_parts.append(f"Hora: {datetime.now().isoformat()}")
+    msg_parts.append(f"Mensaje: {str(e)}")
+    
+    # Información adicional si es TodoistException
+    if isinstance(e, TodoistException):
+        msg_parts.append(f"\n" + "=" * 80)
+        msg_parts.append("INFORMACIÓN DEL SERVICIO")
+        msg_parts.append("=" * 80)
+        for key, value in e.context.items():
+            if key == 'service':
+                msg_parts.append(f"\n🔴 SERVICIO QUE FALLÓ: {value.upper()}")
+            else:
+                msg_parts.append(f"  - {key}: {value}")
+    
+    # Traceback completo
+    msg_parts.append("\n" + "=" * 80)
+    msg_parts.append("TRACEBACK COMPLETO")
+    msg_parts.append("=" * 80)
+    
+    tb_str = traceback.format_exc()
+    if tb_str == "NoneType: None\n":
+        # Si no hay traceback, construir uno desde la excepción
+        tb_str = f"  Exception: {e}\n"
+    msg_parts.append(tb_str)
+    
+    # Información de la causa raíz
+    if e.__cause__:
+        msg_parts.append("\n" + "=" * 80)
+        msg_parts.append("CAUSA RAÍZ")
+        msg_parts.append("=" * 80)
+        msg_parts.append(f"Tipo: {type(e.__cause__).__name__}")
+        msg_parts.append(f"Mensaje: {str(e.__cause__)}")
+    
+    return "\n".join(msg_parts)
+
+def format_error_for_email(operation: str, e: Exception, additional_info: dict = None) -> str:
+    """
+    Formatea un error completo para enviar por correo con contexto de operación.
+    
+    Args:
+        operation: Nombre de la operación que falló (ej: "Daily Task Execution").
+        e: La excepción capturada.
+        additional_info: Diccionario con información adicional (ej: task_id, project_name).
+    
+    Returns:
+        str: Mensaje formateado listo para enviar por correo.
+    """
+    msg_parts = []
+    
+    # Encabezado con identificación del servicio
+    service = "DESCONOCIDO"
+    if isinstance(e, TodoistException) and 'service' in e.context:
+        service = e.context['service']
+    
+    msg_parts.append("\n" + "🚨 " * 20)
+    msg_parts.append(f"SERVICIO AFECTADO: {service}")
+    msg_parts.append("🚨 " * 20)
+    
+    msg_parts.append("\n" + "=" * 80)
+    msg_parts.append(f"OPERACIÓN FALLIDA: {operation}")
+    msg_parts.append("=" * 80)
+    msg_parts.append(f"\nFecha y hora: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Información adicional si está disponible
+    if additional_info:
+        msg_parts.append("\nDetalles de la operación:")
+        for key, value in additional_info.items():
+            msg_parts.append(f"  - {key}: {value}")
+    
+    # Detalles del error
+    msg_parts.append("\n" + build_exception_msg(e))
+    
+    # Recomendaciones según el servicio
+    msg_parts.append("\n" + "=" * 80)
+    msg_parts.append("RECOMENDACIONES")
+    msg_parts.append("=" * 80)
+    if service == "Todoist API":
+        msg_parts.append("• El error proviene de la API de Todoist")
+        msg_parts.append("• Verificar status: https://todoist.com/")
+        msg_parts.append("• Revisar limites de rate limit de API")
+        msg_parts.append("• El codigo reintentara automaticamente en proximas ejecuciones")
+    elif service == "Azure Blob Storage":
+        msg_parts.append("• El error proviene de Azure Blob Storage")
+        msg_parts.append("• Verificar credenciales de conexion (AZURE_STORAGE_CONNECTION_STRING)")
+        msg_parts.append("• Verificar estado de la cuenta Azure")
+        msg_parts.append("• Revisar permisos en el contenedor 'todoistcontainer'")
+    else:
+        msg_parts.append("• Revisar logs de ejecucion")
+        msg_parts.append("• Verificar conexion a internet")
+    
+    return "\n".join(msg_parts)

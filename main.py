@@ -270,16 +270,39 @@ class MainDiego:
                 return f'{body}\n\nAnd mail sent correctly'
             
             except Exception as e:
-                error_msg = fun.build_exception_msg(e)
-                return f'{body}\n\nAnd error sending mail: {error_msg}'
+                error_msg = fun.format_error_for_email(
+                    operation="Daily Todoist - Email Send",
+                    e=e,
+                    additional_info={
+                        "fecha": today.strftime('%Y-%m-%d'),
+                        "dia_semana": ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][weekday],
+                        "tareas_procesadas": len(all_tasks),
+                        "cambios_realizados": body.count('\n') - 2
+                    }
+                )
+                return f'{body}\n\nError sending mail:\n{error_msg}'
         
         except Exception as e:
             try:
-                error_msg = fun.build_exception_msg(e)
+                additional_info = {
+                    "fecha": today.strftime('%Y-%m-%d'),
+                    "dia_semana": ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][weekday],
+                    "estado": "Fallo durante procesamiento de tareas"
+                }
+                if 'all_tasks' in locals():
+                    additional_info['tareas_intentadas'] = len(all_tasks)
+                if 'body' in locals():
+                    additional_info['progress'] = body[:200] + "..." if len(body) > 200 else body
+                    
+                error_msg = fun.format_error_for_email(
+                    operation="Daily Todoist - Main Process",
+                    e=e,
+                    additional_info=additional_info
+                )
                 fun.send_email("Daily Todoist - Error", error_msg, address)
                 return error_msg
             except Exception as e2:
-                return f'{error_msg}\n\nAnd error sending error mail: {e2}\n\n{body}'
+                return f'Critical error in Daily execution: {e2}'
                
     def TodoistSuperBet(self, hour: int = 0):
         try:
@@ -306,8 +329,16 @@ class MainDiego:
             return f'Execution completed, day {weekday}, hour {hour}'
         
         except Exception as e:
-            error_msg = fun.build_exception_msg(e)
-            return error_msg
+            return fun.format_error_for_email(
+                operation="SuperBet Task Update",
+                e=e,
+                additional_info={
+                    "task_id": task_id,
+                    "day_of_week": weekday,
+                    "hour": hour,
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
         
     def TodoistHiddenNightTasks(self):
         try:
@@ -348,8 +379,17 @@ class MainDiego:
             return f'Execution completed, day {weekday}'
         
         except Exception as e:
-            error_msg = fun.build_exception_msg(e)
-            return error_msg
+            return fun.format_error_for_email(
+                operation="Hidden Night Tasks Update",
+                e=e,
+                additional_info={
+                    "day_of_week": weekday,
+                    "wh_task_id": wh_task_id,
+                    "health_task_id": health_task_id,
+                    "apps_task_id": apps_task_id,
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
         
     def TodoistToDoLP(self, address):
         try:
@@ -408,11 +448,18 @@ class MainDiego:
             
         except Exception as e:
             try:
-                error_msg = fun.build_exception_msg(e)
+                error_msg = fun.format_error_for_email(
+                    operation="ToDoLP Data Sync",
+                    e=e,
+                    additional_info={
+                        "timestamp": datetime.now().isoformat(),
+                        "recipient": address
+                    }
+                )
                 fun.send_email("Todoist ToDo LP - Error", error_msg, address)
                 return error_msg
             except Exception as e2:
-                return f'{error_msg}\n\nAnd error sending error mail: {e2}'
+                return f'Critical error in ToDoLP: {e2}'
  
     def TodoistWeather(self):
         try:
@@ -464,8 +511,15 @@ class MainDiego:
                 return f'Error getting data: {response.status_code}'
                 
         except Exception as e:
-            error_msg = fun.build_exception_msg(e)
-            return error_msg
+            return fun.format_error_for_email(
+                operation="Weather Task Creation",
+                e=e,
+                additional_info={
+                    "city": 'Colmenarejo',
+                    "timestamp": datetime.now().isoformat(),
+                    "total_tasks_to_check": len(all_tasks) if 'all_tasks' in locals() else 'No tasks loaded'
+                }
+            )
 
                
 if __name__ == "__main__":
