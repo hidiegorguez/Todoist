@@ -2,6 +2,8 @@ import os
 import smtplib
 import traceback
 import sys
+import random
+import time
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -33,8 +35,76 @@ class TodoistFunctions:
         self.api_token = api_token
         self.api = TodoistAPI(api_token)
 
+    def _is_retryable_exception(self, e: Exception) -> bool:
+        """Returns True when the exception likely represents a transient failure."""
+        if isinstance(e, requests.exceptions.Timeout):
+            return True
+        if isinstance(e, requests.exceptions.ConnectionError):
+            return True
+        if isinstance(e, requests.exceptions.HTTPError):
+            status_code = e.response.status_code if hasattr(e, "response") and e.response is not None else None
+            return status_code in (429, 500, 502, 503, 504)
+        return False
+
+    def _execute_with_retry(self, operation_name: str, operation_fn, max_attempts: int = 5):
+        """Executes a Todoist operation with exponential backoff and jitter."""
+        last_exception = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return operation_fn()
+            except Exception as e:
+                last_exception = e
+                if not self._is_retryable_exception(e) or attempt == max_attempts:
+                    break
+
+                # 1.5s, 3s, 6s, 12s + jitter to avoid thundering herd.
+                base_delay = 1.5 * (2 ** (attempt - 1))
+                sleep_seconds = base_delay + random.uniform(0, 0.6)
+                print(
+                    f"[{operation_name}] transient error on attempt {attempt}/{max_attempts}: {type(e).__name__}. "
+                    f"Retrying in {sleep_seconds:.2f}s"
+                )
+                time.sleep(sleep_seconds)
+
+        if isinstance(last_exception, requests.exceptions.HTTPError):
+            status_code = (
+                last_exception.response.status_code
+                if hasattr(last_exception, "response") and last_exception.response is not None
+                else "N/A"
+            )
+            response_text = (
+                last_exception.response.text
+                if hasattr(last_exception, "response") and last_exception.response is not None
+                else "N/A"
+            )
+            raise TodoistException(
+                f"{operation_name} failed after {max_attempts} attempts. "
+                f"Last HTTP status: {status_code}. Response: {response_text}",
+                context={
+                    "service": "Todoist API",
+                    "operation": operation_name,
+                    "attempts": max_attempts,
+                    "last_status_code": status_code,
+                    "timestamp": datetime.now().isoformat(),
+                },
+            ) from last_exception
+
+        raise TodoistException(
+            f"{operation_name} failed after {max_attempts} attempts. Last error: {last_exception}",
+            context={
+                "service": "Todoist API",
+                "operation": operation_name,
+                "attempts": max_attempts,
+                "last_exception_type": type(last_exception).__name__ if last_exception is not None else "Unknown",
+                "timestamp": datetime.now().isoformat(),
+            },
+        ) from last_exception
+
     def _handle_exception(self, e: Exception) -> None:
         """Maneja las excepciones de forma consistente lanzando TodoistException."""
+        if isinstance(e, TodoistException):
+            raise e
+
         context = {
             'service': 'Todoist API',
             'original_exception_type': type(e).__name__,
@@ -82,9 +152,13 @@ class TodoistFunctions:
             TodoistException: Si hay error en la petición.
         """
         try:
-            all_projects = []
-            for project_batch in self.api.get_projects():
-                all_projects.extend(project_batch)
+            def _fetch_projects():
+                projects = []
+                for project_batch in self.api.get_projects():
+                    projects.extend(project_batch)
+                return projects
+
+            all_projects = self._execute_with_retry("get_projects", _fetch_projects)
         except Exception as e:
             self._handle_exception(e)
 
@@ -111,9 +185,13 @@ class TodoistFunctions:
             TodoistException: Si hay error en la petición.
         """
         try:
-            all_sections = []
-            for section_batch in self.api.get_sections():
-                all_sections.extend(section_batch)
+            def _fetch_sections():
+                sections = []
+                for section_batch in self.api.get_sections():
+                    sections.extend(section_batch)
+                return sections
+
+            all_sections = self._execute_with_retry("get_sections", _fetch_sections)
         except Exception as e:
             self._handle_exception(e)
 
@@ -139,9 +217,14 @@ class TodoistFunctions:
         """
         try:
             active_projects_ids, _ = self.get_projects()
-            all_tasks = []
-            for task_batch in self.api.get_tasks():
-                all_tasks.extend(task_batch)
+
+            def _fetch_tasks():
+                tasks = []
+                for task_batch in self.api.get_tasks():
+                    tasks.extend(task_batch)
+                return tasks
+
+            all_tasks = self._execute_with_retry("get_tasks", _fetch_tasks)
         except TodoistException:
             raise
         except Exception as e:
@@ -163,7 +246,10 @@ class TodoistFunctions:
             TodoistException: Si hay error en la petición.
         """
         try:
-            return self.api.get_task(task_id=task_id)
+            return self._execute_with_retry(
+                operation_name=f"get_task({task_id})",
+                operation_fn=lambda: self.api.get_task(task_id=task_id),
+            )
         except Exception as e:
             self._handle_exception(e)
 
@@ -389,12 +475,18 @@ class TodoistFunctions:
             TodoistException: Si hay error en la petición.
         """
         try:
-            all_tasks = []
-            for task_batch in self.api.get_completed_tasks_by_completion_date(
-                limit=limit, since=since, until=until
-            ):
-                all_tasks.extend(task_batch)
-            return all_tasks
+            def _fetch_completed_tasks():
+                tasks = []
+                for task_batch in self.api.get_completed_tasks_by_completion_date(
+                    limit=limit, since=since, until=until
+                ):
+                    tasks.extend(task_batch)
+                return tasks
+
+            return self._execute_with_retry(
+                operation_name="get_completed_tasks_by_completion_date",
+                operation_fn=_fetch_completed_tasks,
+            )
         except Exception as e:
             self._handle_exception(e)
 
