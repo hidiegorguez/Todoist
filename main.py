@@ -185,9 +185,9 @@ class MainDiego:
             # Similar tasks       
             similars = similar_tasks(project_ids=['6Crcvw8HQ7pGFH8v',
                                                  '6Crcvw8HPWrHFWMx',
-                                                 '',
-                                                 '',
-                                                 ''],
+                                                 '6g2gVxRGGVQJx76J',
+                                                 '6FhQxfCg5jxP4XpP',
+                                                 '6V72655fCQ3gChqh'],
                                        umbral=0.7)
             similar_tasks_csv = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'similartasksdiego.csv')
             if weekday == 0:
