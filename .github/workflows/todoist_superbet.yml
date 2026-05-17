@@ -1,0 +1,32 @@
+name: Todoist SuperBet
+
+on:
+  schedule:
+    - cron: '55 10 * * *'
+    - cron: '55 14 * * *'
+    - cron: '55 16 * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run TodoistSuperBet
+        env:
+          TODOIST_API_TOKEN: ${{ secrets.TODOIST_API_TOKEN }}
+        run: python -c "
+import os
+from datetime import datetime
+from main import MainDiego
+main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+print(main.TodoistSuperBet(hour=datetime.utcnow().hour))
+"
