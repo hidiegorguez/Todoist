@@ -24,21 +24,37 @@ jobs:
       - name: Download spaCy model
         run: python -m spacy download es_core_news_sm
 
+      - name: Runtime diagnostics
+        run: |
+          echo "[diag] UTC now: $(date -u)"
+          echo "[diag] ref: $GITHUB_REF"
+          echo "[diag] actor: $GITHUB_ACTOR"
+          python --version
+          pip --version
+
       - name: Run TodoistDaily
         env:
           TODOIST_API_TOKEN: ${{ secrets.TODOIST_API_TOKEN }}
           DIEGO_EMAIL: ${{ secrets.DIEGO_EMAIL }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ECLIPSE_EMAIL: ${{ secrets.ECLIPSE_EMAIL }}
+          ECLIPSE_APP_PASSWORD: ${{ secrets.ECLIPSE_APP_PASSWORD }}
         run: |
           python - <<'PY'
+          import datetime
           import os
+          import traceback
           from main import MainDiego
 
-          main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-          print(main.TodoistDaily(address=os.getenv('DIEGO_EMAIL')))
+          print(f"[TodoistDaily] start UTC={datetime.datetime.utcnow().isoformat()}Z")
+          try:
+              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+              result = main.TodoistDaily(address=os.getenv('DIEGO_EMAIL'))
+              print(f"[TodoistDaily] result: {result}")
+              print("[TodoistDaily] completed")
+          except Exception as exc:
+              print(f"[TodoistDaily] failed: {exc}")
+              traceback.print_exc()
+              raise
           PY
 
       - name: Commit updated similar tasks CSV

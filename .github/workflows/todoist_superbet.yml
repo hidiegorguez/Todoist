@@ -20,15 +20,34 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Runtime diagnostics
+        run: |
+          echo "[diag] UTC now: $(date -u)"
+          echo "[diag] ref: $GITHUB_REF"
+          echo "[diag] actor: $GITHUB_ACTOR"
+          python --version
+          pip --version
+
       - name: Run TodoistSuperBet
         env:
           TODOIST_API_TOKEN: ${{ secrets.TODOIST_API_TOKEN }}
         run: |
           python - <<'PY'
+          import datetime
           import os
-          from datetime import datetime
+          import traceback
           from main import MainDiego
 
-          main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-          print(main.TodoistSuperBet(hour=datetime.utcnow().hour))
+          print(f"[TodoistSuperBet] start UTC={datetime.datetime.utcnow().isoformat()}Z")
+          try:
+              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+              hour = datetime.datetime.utcnow().hour
+              print(f"[TodoistSuperBet] evaluation hour(UTC): {hour}")
+              result = main.TodoistSuperBet(hour=hour)
+              print(f"[TodoistSuperBet] result: {result}")
+              print("[TodoistSuperBet] completed")
+          except Exception as exc:
+              print(f"[TodoistSuperBet] failed: {exc}")
+              traceback.print_exc()
+              raise
           PY

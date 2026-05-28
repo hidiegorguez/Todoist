@@ -18,15 +18,33 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Runtime diagnostics
+        run: |
+          echo "[diag] UTC now: $(date -u)"
+          echo "[diag] ref: $GITHUB_REF"
+          echo "[diag] actor: $GITHUB_ACTOR"
+          python --version
+          pip --version
+
       - name: Run TodoistWeather
         env:
           TODOIST_API_TOKEN: ${{ secrets.TODOIST_API_TOKEN }}
           OPEN_WEATHER_API_KEY: ${{ secrets.OPEN_WEATHER_API_KEY }}
         run: |
           python - <<'PY'
+          import datetime
           import os
+          import traceback
           from main import MainDiego
 
-          main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-          print(main.TodoistWeather())
+          print(f"[TodoistWeather] start UTC={datetime.datetime.utcnow().isoformat()}Z")
+          try:
+              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+              result = main.TodoistWeather()
+              print(f"[TodoistWeather] result: {result}")
+              print("[TodoistWeather] completed")
+          except Exception as exc:
+              print(f"[TodoistWeather] failed: {exc}")
+              traceback.print_exc()
+              raise
           PY
