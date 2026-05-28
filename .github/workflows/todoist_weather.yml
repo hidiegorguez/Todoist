@@ -22,9 +22,11 @@ jobs:
         env:
           TODOIST_API_TOKEN: ${{ secrets.TODOIST_API_TOKEN }}
           OPEN_WEATHER_API_KEY: ${{ secrets.OPEN_WEATHER_API_KEY }}
-        run: python -c "
-import os
-from main import MainDiego
-main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-print(main.TodoistWeather())
-"
+        run: |
+          python - <<'PY'
+          import os
+          from main import MainDiego
+
+          main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+          print(main.TodoistWeather())
+          PY

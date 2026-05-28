@@ -32,12 +32,14 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-        run: python -c "
-import os
-from main import MainDiego
-main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-print(main.TodoistDaily(address=os.getenv('DIEGO_EMAIL')))
-"
+        run: |
+          python - <<'PY'
+          import os
+          from main import MainDiego
+
+          main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+          print(main.TodoistDaily(address=os.getenv('DIEGO_EMAIL')))
+          PY
 
       - name: Commit updated similar tasks CSV
         run: |
