@@ -11,7 +11,10 @@ from io import StringIO
 
 import pandas as pd
 import requests
-from azure.storage.blob import BlobServiceClient
+try:
+    from azure.storage.blob import BlobServiceClient
+except ImportError:
+    BlobServiceClient = None
 from dotenv import load_dotenv
 from todoist_api_python.api import TodoistAPI
 
@@ -517,6 +520,10 @@ class TodoistFunctions:
 class AzureBlobFunctions:
 
     def __init__(self, api_connection_string):
+        if BlobServiceClient is None:
+            raise TodoistException(
+                "Azure Blob support is not installed. Install 'azure-storage-blob' to use AzureBlobFunctions."
+            )
         self.connect_str = api_connection_string
         self.blob_service_client = BlobServiceClient.from_connection_string(self.connect_str)
         self.container_client = self.blob_service_client.get_container_client('todoistcontainer')
