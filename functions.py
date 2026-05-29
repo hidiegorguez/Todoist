@@ -7,14 +7,9 @@ import time
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from io import StringIO
 
 import pandas as pd
 import requests
-try:
-    from azure.storage.blob import BlobServiceClient
-except ImportError:
-    BlobServiceClient = None
 from dotenv import load_dotenv
 from todoist_api_python.api import TodoistAPI
 
@@ -517,79 +512,6 @@ class TodoistFunctions:
         except Exception as e:
             self._handle_exception(e)
 
-class AzureBlobFunctions:
-
-    def __init__(self, api_connection_string):
-        if BlobServiceClient is None:
-            raise TodoistException(
-                "Azure Blob support is not installed. Install 'azure-storage-blob' to use AzureBlobFunctions."
-            )
-        self.connect_str = api_connection_string
-        self.blob_service_client = BlobServiceClient.from_connection_string(self.connect_str)
-        self.container_client = self.blob_service_client.get_container_client('todoistcontainer')
-
-    def _handle_azure_exception(self, e: Exception, operation: str) -> None:
-        """Maneja excepciones de Azure Blob Storage de forma específica."""
-        context = {
-            'service': 'Azure Blob Storage',
-            'operation': operation,
-            'original_exception_type': type(e).__name__,
-            'timestamp': datetime.now().isoformat(),
-        }
-        
-        if isinstance(e, requests.exceptions.HTTPError):
-            context['status_code'] = e.response.status_code if hasattr(e, 'response') else 'N/A'
-            context['response_text'] = e.response.text if hasattr(e, 'response') else 'N/A'
-            message = f"Azure Blob Storage HTTP Error {context['status_code']}: {context['response_text']}"
-            raise TodoistException(message, context=context) from e
-        elif isinstance(e, requests.exceptions.ConnectionError):
-            message = f"Azure Connection error: {e}"
-            context['error_details'] = str(e)
-            raise TodoistException(message, context=context) from e
-        elif isinstance(e, requests.exceptions.Timeout):
-            message = f"Azure Timeout error: {e}"
-            context['error_details'] = str(e)
-            raise TodoistException(message, context=context) from e
-        else:
-            message = f"Azure operation '{operation}' failed: {e}"
-            context['error_details'] = str(e)
-            raise TodoistException(message, context=context) from e
-
-    def read_csv_from_blob(self, blob_name):
-        try:
-            blob_client = self.container_client.get_blob_client(blob_name)
-            blob_data = blob_client.download_blob().readall()
-            data = StringIO(blob_data.decode('utf-8'))
-            df = pd.read_csv(data)
-            return df
-        except Exception as e:
-            self._handle_azure_exception(e, f"read_csv_from_blob('{blob_name}')")
-
-    def upload_csv_to_blob(self, df: pd.DataFrame, blob_name):
-        try:
-            blob_client = self.container_client.get_blob_client(blob_name)
-            output = StringIO()
-            df.to_csv(output, index=False)
-            output.seek(0)
-            blob_client.upload_blob(output.getvalue(), overwrite=True)
-        except Exception as e:
-            self._handle_azure_exception(e, f"upload_csv_to_blob('{blob_name}')")
-        
-    def list_blobs_in_container(self):
-        try:
-            blob_list = self.container_client.list_blobs()
-            blobs = [blob.name for blob in blob_list]
-            return blobs
-        except Exception as e:
-            self._handle_azure_exception(e, "list_blobs_in_container()")
-    
-    def delete_blob(self, blob_name):
-        try:
-            blob_client = self.container_client.get_blob_client(blob_name)
-            blob_client.delete_blob()
-        except Exception as e:
-            self._handle_azure_exception(e, f"delete_blob('{blob_name}')")
-
 def get_duration_label(n):
     if n<5:
         return 'Short'
@@ -743,11 +665,6 @@ def format_error_for_email(operation: str, e: Exception, additional_info: dict =
         msg_parts.append("• Verificar status: https://todoist.com/")
         msg_parts.append("• Revisar limites de rate limit de API")
         msg_parts.append("• El codigo reintentara automaticamente en proximas ejecuciones")
-    elif service == "Azure Blob Storage":
-        msg_parts.append("• El error proviene de Azure Blob Storage")
-        msg_parts.append("• Verificar credenciales de conexion (AZURE_STORAGE_CONNECTION_STRING)")
-        msg_parts.append("• Verificar estado de la cuenta Azure")
-        msg_parts.append("• Revisar permisos en el contenedor 'todoistcontainer'")
     else:
         msg_parts.append("• Revisar logs de ejecucion")
         msg_parts.append("• Verificar conexion a internet")

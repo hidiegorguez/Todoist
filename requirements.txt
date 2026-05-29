@@ -1,9 +1,3 @@
-# Azure Functions SDK, necessary for creating and deploying functions (kept for reference)
-# azure-functions
-
-# Azure Storage Blob client library for working with blob storage (kept for reference)
-# azure-storage-blob==12.20.0
-
 # Python dotenv for loading environment variables from a .env file
 python-dotenv==1.0.1
 

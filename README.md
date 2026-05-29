@@ -10,7 +10,7 @@
 4. Select your environment features in 'src/.env': your Todoist API token (TODOIST_API_TOKEN) and your gmail and password (MAIL, APP_PASSWORD).
 5. Create your notebook. You can base it on ours (maindiego.ipynb, maintoni.ipynb).
 6. Start trying some automation (feel free to add new functions to our functions.py).
-7. main.py can be used as well, but its main focus is to run it with an Azure Timer Trigger Function (0 0 3 * * *).
+7. main.py is executed by the GitHub Actions workflows in `.github/workflows`.
 
 ## Reminder
 

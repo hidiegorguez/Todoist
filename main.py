@@ -45,10 +45,6 @@ class MainDiego:
                             f'Weekly deadlines updated:': weekly_deadlines_msgs,
                             f'Next tasks are similar:': similar_msgs}
             
-            # Azure Blob (kept for reference, currently replaced by local CSV)
-            # connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-            # az = fun.AzureBlobFunctions(connect_str)
-            
             # Projects, sections and tasks
             projects_dict_id, _ = self.tf.get_projects()
             all_tasks = self.tf.get_tasks()
@@ -193,9 +189,6 @@ class MainDiego:
             if weekday == 0:
                 similars_blob = []
             else:
-                # Azure Blob (kept for reference)
-                # similars_df = az.read_csv_from_blob(blob_name='similartasks/similartasksdiego.csv')
-                # similars_blob = list(similars_df['similar'].values)
                 if os.path.exists(similar_tasks_csv):
                     similars_df = pd.read_csv(similar_tasks_csv)
                     similars_blob = list(similars_df['similar'].values)
@@ -207,8 +200,6 @@ class MainDiego:
                         similar_msgs.append(f'- {similar}')
                         similars_blob.append(similar)
                 similars_df = pd.DataFrame(similars, columns=["similar"])
-                # Azure Blob (kept for reference)
-                # az.upload_csv_to_blob(df=similars_df, blob_name='similartasks/similartasksdiego.csv')
                 os.makedirs(os.path.dirname(similar_tasks_csv), exist_ok=True)
                 similars_df.to_csv(similar_tasks_csv, index=False)
                 
@@ -403,17 +394,12 @@ class MainDiego:
         
     def TodoistToDoLP(self, address):
         try:
-    #         connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-    #         az = fun.AzureBlobFunctions(connect_str)
-            
     #         def refreshTasks():
     #             all_tasks = self.tf.get_tasks(to_dict=False)
     #             task_dict_id, task_dict_name = self.tf.get_tasks()
     #             return all_tasks, task_dict_id, task_dict_name
             
     #         _, _, task_dict_name = refreshTasks()
-            
-    #         todo_df = az.read_csv_from_blob('todoligapistacho.csv')
             
     #         task_names = todo_df['Name'].values
     #         created_tasks = []
