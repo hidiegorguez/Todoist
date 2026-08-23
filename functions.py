@@ -374,27 +374,52 @@ class TodoistFunctions:
         Raises:
             TodoistException: Si hay error en la petición.
         """
+        payload = {
+            "task_id": task_id,
+            "content": content,
+            "description": description,
+            "labels": labels,
+            "priority": priority,
+            "due_string": due_string,
+            "due_lang": due_lang,
+            "due_date": due_date,
+            "due_datetime": due_datetime,
+            "assignee_id": assignee_id,
+            "day_order": day_order,
+            "duration": duration,
+            "collapsed": collapsed,
+            "duration_unit": duration_unit,
+            "deadline_date": deadline_date,
+            "deadline_lang": deadline_lang,
+        }
+
         try:
-            self.api.update_task(
-                task_id=task_id,
-                content=content,
-                description=description,
-                labels=labels,
-                priority=priority,
-                due_string=due_string,
-                due_lang=due_lang,
-                due_date=due_date,
-                due_datetime=due_datetime,
-                assignee_id=assignee_id,
-                day_order=day_order,
-                duration=duration,
-                collapsed=collapsed,
-                duration_unit=duration_unit,
-                deadline_date=deadline_date,
-                deadline_lang=deadline_lang,
-            )
+            self.api.update_task(**payload)
             return True
         except Exception as e:
+            error_message = str(e)
+
+            # Compatibility fallback across SDK versions:
+            # some versions expect due_date as datetime.date, others as YYYY-MM-DD string.
+            if due_date is not None:
+                # Newer SDK path: passed string but client tries due_date.isoformat().
+                if isinstance(due_date, str) and "isoformat" in error_message:
+                    try:
+                        payload["due_date"] = datetime.strptime(due_date[:10], "%Y-%m-%d").date()
+                        self.api.update_task(**payload)
+                        return True
+                    except Exception:
+                        pass
+
+                # Older SDK path: passed date-like object but JSON serializer expects string.
+                if not isinstance(due_date, str) and "JSON serializable" in error_message:
+                    try:
+                        payload["due_date"] = due_date.isoformat() if hasattr(due_date, "isoformat") else str(due_date)
+                        self.api.update_task(**payload)
+                        return True
+                    except Exception:
+                        pass
+
             self._handle_exception(e)
 
     def move_task(
