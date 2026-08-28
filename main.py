@@ -137,7 +137,7 @@ class MainDiego:
                 return similars 
             
             # Remove Work label
-            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '6Q7XxhMv85jvw69M', all_tasks)):
+            for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '6hHqvV2wh2Jf2vpC', all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     labels=[label for label in task.labels if label != 'Work'])
                 
@@ -147,7 +147,7 @@ class MainDiego:
                                     labels=[label for label in task.labels if label != 'Work'],
                                     due_string="today")
                 self.tf.move_task(task_id=task.id,
-                                  project_id='6Q7XxhMv85jvw69M')
+                                  project_id='6hHqvV2wh2Jf2vpC')
             
             # Add duration labels
             for task in list(filter(lambda task: task.duration is not None and all(label not in task.labels for label in ['Long', 'Med', 'Short']), all_tasks)):
