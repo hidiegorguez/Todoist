@@ -2,9 +2,9 @@ name: Todoist SuperBet
 
 on:
   schedule:
-    - cron: '55 10 * * *'
-    - cron: '55 14 * * *'
-    - cron: '55 16 * * *'
+    - cron: '53 10 * * *'
+    - cron: '53 14 * * *'
+    - cron: '53 16 * * *'
   workflow_dispatch:
 
 jobs:

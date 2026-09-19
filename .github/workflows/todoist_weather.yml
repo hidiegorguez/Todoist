@@ -2,7 +2,7 @@ name: Todoist Weather
 
 on:
   schedule:
-    - cron: '55 12 * * *'
+    - cron: '53 12 * * *'
   workflow_dispatch:
 
 jobs:

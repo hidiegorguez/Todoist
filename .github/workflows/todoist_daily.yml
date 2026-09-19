@@ -2,7 +2,8 @@ name: Todoist Daily
 
 on:
   schedule:
-    - cron: '0 3 * * *'
+    # Avoid the top-of-the-hour minute (":00"), which is the most congested slot on GitHub Actions.
+    - cron: '53 2 * * *'
   workflow_dispatch:
 
 permissions:
