@@ -477,6 +477,32 @@ class MainDiego:
                     "timestamp": datetime.now().isoformat()
                 }
             )
+
+    def TodoistHiddenAfternoonTasks(self):
+        try:
+            today = datetime.today()
+            weekday = today.weekday()
+            task_id = '6hWpCqC7FrpPVJQx'
+            if weekday == 3:
+                task = self.tf.get_task(task_id)
+                if task.is_completed:
+                    self.tf.uncomplete_task(task_id)
+                    self.tf.update_task(task_id=task_id, due_string='today at 9 pm')
+                    self.tf.add_reminder(task_id=task_id, minute_offset=0)
+                else:
+                    self.tf.update_task(task_id=task_id, due_string='today at 9 pm')
+            return f'Execution completed, day {weekday}'
+
+        except Exception as e:
+            return fun.format_error_for_email(
+                operation="Hidden Afternoon Tasks Update",
+                e=e,
+                additional_info={
+                    "day_of_week": weekday,
+                    "task_id": task_id,
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
         
     def TodoistToDoLP(self, address):
         try:

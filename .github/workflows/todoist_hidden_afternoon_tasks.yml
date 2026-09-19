@@ -1,0 +1,49 @@
+name: Todoist Hidden Afternoon Tasks
+
+on:
+  schedule:
+    - cron: '53 14 * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Runtime diagnostics
+        run: |
+          echo "[diag] UTC now: $(date -u)"
+          echo "[diag] ref: $GITHUB_REF"
+          echo "[diag] actor: $GITHUB_ACTOR"
+          python --version
+          pip --version
+
+      - name: Run TodoistHiddenAfternoonTasks
+        env:
+          TODOIST_API_TOKEN: ${{ secrets.TODOIST_API_TOKEN }}
+        run: |
+          python - <<'PY'
+          import datetime
+          import os
+          import traceback
+          from main import MainDiego
+
+          print(f"[TodoistHiddenAfternoonTasks] start UTC={datetime.datetime.utcnow().isoformat()}Z")
+          try:
+              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+              result = main.TodoistHiddenAfternoonTasks()
+              print(f"[TodoistHiddenAfternoonTasks] result: {result}")
+              print("[TodoistHiddenAfternoonTasks] completed")
+          except Exception as exc:
+              print(f"[TodoistHiddenAfternoonTasks] failed: {exc}")
+              traceback.print_exc()
+              raise
+          PY
