@@ -208,13 +208,29 @@ class MainDiego:
                 if not any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks)):
                     vacation_day = datetime.strptime(task.due.date.strftime('%Y-%m-%d'), '%Y-%m-%d') 
                     if vacation_day > today + timedelta(days=3):
-                        self.tf.add_task(content=f'Preparar maleta {title}',
+                        new_suitcase_task = self.tf.add_task(content=f'Preparar maleta {title}',
                                           due_string=f"3 dias antes de {task.due.date.strftime('%Y-%m-%d')}",
                                           priority=fun.priority_inversal(2), #orange
                                           labels=['Long', 'Home'],
                                           project_id='6Crcvw8HP8h84jJV')
                         message = f'Task "Preparar maleta {title}" created succesfully'
                         suitcase_msgs.append("- "+message)
+
+                        # Copy the packing checklist from the reference "Maleta" task comments,
+                        # but only if the new task doesn't already have one (avoids duplicates on reruns).
+                        try:
+                            existing_comments = self.tf.get_comments(task_id=new_suitcase_task.id)
+                            if existing_comments:
+                                suitcase_msgs.append(f'- "Preparar maleta {title}" already has a comment; skipped copy')
+                            else:
+                                maleta_comments = self.tf.get_comments(task_id='69xHX9fhRF5Rq964')
+                                if maleta_comments:
+                                    self.tf.add_comment(content=maleta_comments[0].content, task_id=new_suitcase_task.id)
+                                    suitcase_msgs.append(f'- Packing checklist copied to "Preparar maleta {title}"')
+                                else:
+                                    suitcase_msgs.append('- Maleta task has no comments to copy')
+                        except Exception as e:
+                            suitcase_msgs.append(f'- Could not copy packing checklist: {e}')
                         
                 if not any(filter(lambda t: t.content == f'Apuntar gastos {title}', all_tasks)):
                     if 'fin' in task.due.string or 'ending' in task.due.string:        

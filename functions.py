@@ -513,6 +513,64 @@ class TodoistFunctions:
         except Exception as e:
             self._handle_exception(e)
 
+    def get_comments(self, task_id: str = None, project_id: str = None):
+        """
+        Obtiene los comentarios de una tarea o proyecto.
+
+        Args:
+            task_id: ID de la tarea de la que obtener comentarios.
+            project_id: ID del proyecto del que obtener comentarios.
+
+        Returns:
+            List[Comment]: Lista de comentarios.
+
+        Raises:
+            TodoistException: Si hay error en la petición.
+        """
+        try:
+            def _fetch_comments():
+                kwargs = {}
+                if task_id is not None:
+                    kwargs["task_id"] = task_id
+                if project_id is not None:
+                    kwargs["project_id"] = project_id
+
+                comments = []
+                # Some SDK versions paginate results (iterator of batches), others return a flat list.
+                for item in self.api.get_comments(**kwargs):
+                    if isinstance(item, list):
+                        comments.extend(item)
+                    else:
+                        comments.append(item)
+                return comments
+
+            return self._execute_with_retry("get_comments", _fetch_comments)
+        except Exception as e:
+            self._handle_exception(e)
+
+    def add_comment(self, content: str, task_id: str = None, project_id: str = None):
+        """
+        Agrega un comentario a una tarea o proyecto.
+
+        Args:
+            content: Contenido del comentario.
+            task_id: ID de la tarea a comentar.
+            project_id: ID del proyecto a comentar.
+
+        Returns:
+            Comment: El comentario creado.
+
+        Raises:
+            TodoistException: Si hay error en la petición.
+        """
+        try:
+            return self._execute_with_retry(
+                "add_comment",
+                lambda: self.api.add_comment(content=content, task_id=task_id, project_id=project_id),
+            )
+        except Exception as e:
+            self._handle_exception(e)
+
     def add_reminder(self, task_id: str, minute_offset: int) -> bool:
         """
         Agrega un recordatorio relativo a una tarea.
