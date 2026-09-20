@@ -257,6 +257,15 @@ class MainDiego:
                 if task.is_completed:
                     self.tf.uncomplete_task(task_id)
                     self.tf.update_task(task_id=task_id, due_string=f'today at 9 am')
+                    
+
+            # Raised task
+            task_id = '6cX627cCPMmWf9c3'
+            task = self.tf.get_task(task_id)
+            if weekday in [1, 2]:
+                if task.is_completed:
+                    self.tf.uncomplete_task(task_id)
+                    self.tf.update_task(task_id=task_id, due_string=f'today at 8:30 am')
             
             # Water task
             task_id = '683VjRQ5j9GmCx94'
