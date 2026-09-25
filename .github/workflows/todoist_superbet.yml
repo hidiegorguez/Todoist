@@ -36,14 +36,15 @@ jobs:
           import datetime
           import os
           import traceback
-          from main import MainDiego
+          from todoist_automation.api.todoist_client import TodoistFunctions
+          from todoist_automation.automations import superbet
 
           print(f"[TodoistSuperBet] start UTC={datetime.datetime.utcnow().isoformat()}Z")
           try:
-              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
+              tf = TodoistFunctions(api_token=os.getenv('TODOIST_API_TOKEN'))
               hour = datetime.datetime.utcnow().hour
               print(f"[TodoistSuperBet] evaluation hour(UTC): {hour}")
-              result = main.TodoistSuperBet(hour=hour)
+              result = superbet.run_superbet(tf, hour=hour)
               print(f"[TodoistSuperBet] result: {result}")
               print("[TodoistSuperBet] completed")
           except Exception as exc:
