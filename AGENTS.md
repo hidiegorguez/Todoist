@@ -25,5 +25,8 @@ These rules guide contributors and agents working in this repository.
 ## Git
 
 - Create new branches from `dev` for implementation changes.
+- Name branches with a conventional prefix followed by a short kebab-case
+  description, e.g. `feature/`, `fix/`, `chore/`, `refactor/`, `docs/`,
+  `test/` (`feature/add-weather-labels`, `fix/inbox-cleanup-bug`).
 - Review `git diff` before committing.
 - Do not commit `.env`, `.venv`, or files containing secrets.
