@@ -70,7 +70,6 @@ Available variables:
 | `ECLIPSE_EMAIL` | email notifications | SMTP sender account. |
 | `ECLIPSE_APP_PASSWORD` | email notifications | SMTP app password. |
 | `OPEN_WEATHER_API_KEY` | weather automation | OpenWeather API key. |
-| `AZURE_STORAGE_CONNECTION_STRING` | Liga Pistacho notebook | Optional Azure Storage connection. |
 
 The program loads `.env` automatically through `python-dotenv`. You do not
 need to export these variables manually when running from the project root.

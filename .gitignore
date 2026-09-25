@@ -116,18 +116,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Azure Functions configuration and local artifacts
-bin/
-obj/
-appsettings.json
-local.settings.json
-
-# Azurite - local Azure Storage emulator artifacts
-__blobstorage__
-__queuestorage__
-__azurite_db*__.json
-.python_packages
-
 # Project-specific files
 toDoLigaPistacho.ipynb     
 todoligapistacho.csv 
