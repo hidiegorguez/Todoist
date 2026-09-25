@@ -19,8 +19,8 @@ These rules guide contributors and agents working in this repository.
 - Review IDs, filters, and operations before running code that modifies real
   Todoist tasks.
 - Keep notebooks free of outputs before uploading them.
-- Run `python -m py_compile main.py functions.py` after changing Python
-  scripts.
+- Run `python -m py_compile main.py $(Get-ChildItem -Recurse -Filter *.py todoist_automation)`
+  after changing Python scripts.
 
 ## Git
 

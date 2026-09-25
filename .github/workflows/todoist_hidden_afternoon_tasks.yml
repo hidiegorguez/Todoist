@@ -34,12 +34,13 @@ jobs:
           import datetime
           import os
           import traceback
-          from main import MainDiego
+          from todoist_automation.api.todoist_client import TodoistFunctions
+          from todoist_automation.automations import hidden_tasks
 
           print(f"[TodoistHiddenAfternoonTasks] start UTC={datetime.datetime.utcnow().isoformat()}Z")
           try:
-              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-              result = main.TodoistHiddenAfternoonTasks()
+              tf = TodoistFunctions(api_token=os.getenv('TODOIST_API_TOKEN'))
+              result = hidden_tasks.run_hidden_afternoon_tasks(tf)
               print(f"[TodoistHiddenAfternoonTasks] result: {result}")
               print("[TodoistHiddenAfternoonTasks] completed")
           except Exception as exc:

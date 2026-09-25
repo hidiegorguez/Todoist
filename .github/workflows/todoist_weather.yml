@@ -35,12 +35,13 @@ jobs:
           import datetime
           import os
           import traceback
-          from main import MainDiego
+          from todoist_automation.api.todoist_client import TodoistFunctions
+          from todoist_automation.automations import weather
 
           print(f"[TodoistWeather] start UTC={datetime.datetime.utcnow().isoformat()}Z")
           try:
-              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-              result = main.TodoistWeather()
+              tf = TodoistFunctions(api_token=os.getenv('TODOIST_API_TOKEN'))
+              result = weather.run_weather(tf)
               print(f"[TodoistWeather] result: {result}")
               print("[TodoistWeather] completed")
           except Exception as exc:

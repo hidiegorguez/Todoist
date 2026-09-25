@@ -101,7 +101,7 @@ python -m pip install jupyter
 python -m jupyter notebook
 ```
 
-Open a notebook from `src/`. The notebooks add the parent folder to
+Open a notebook from `notebooks/`. The notebooks add the parent folder to
 `sys.path` and load the `.env` file from the root. Before running cells that
 create, move, or update tasks, check the IDs and filters being used.
 
@@ -116,7 +116,7 @@ create, move, or update tasks, check the IDs and filters being used.
 You can check script syntax with:
 
 ```powershell
-python -m py_compile main.py functions.py
+python -m py_compile main.py (Get-ChildItem -Recurse -Filter *.py todoist_automation)
 ```
 
 See `AGENTS.md` for automated-work and collaboration guidelines.
@@ -134,12 +134,20 @@ the credential from Git history.
 
 ```text
 .
-├── main.py                 # Daily automation entry point
-├── functions.py            # Reusable Todoist and email operations
-├── requirements.txt        # Pinned Python dependencies
-├── .env.example            # Public configuration template
-├── src/                    # Notebooks and working data
-└── media/                  # Visual assets
+├── main.py                       # Thin entry point: builds the client and calls an automation
+├── requirements.txt              # Pinned Python dependencies
+├── .env.example                  # Public configuration template
+├── data/                         # Working data (e.g. similar-tasks cache)
+├── media/                        # Visual assets
+├── notebooks/                    # Jupyter notebooks
+└── todoist_automation/           # Application package
+    ├── config.py                 # Named project/section/task IDs and paths
+    ├── api/                      # External integrations
+    │   ├── todoist_client.py     # Todoist API client (TodoistFunctions)
+    │   └── mailer.py             # Email sending and error formatting
+    ├── automations/              # One module per top-level routine (daily, superbet, ...)
+    ├── daily_tasks/              # Each block that used to live inside TodoistDaily
+    └── utils/                    # Small stateless helpers (dates, labels, report body)
 ```
 
 ## CI automation
