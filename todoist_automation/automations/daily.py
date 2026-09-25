@@ -39,7 +39,7 @@ def run_daily(tf, address):
         projects_dict_id, _ = tf.get_projects()
         all_tasks = tf.get_tasks()
 
-        shopping_subtasks_msgs, shopping_labels_msgs = shopping.process_compra_subtasks(tf, all_tasks)
+        shopping_subtasks_msgs, shopping_labels_msgs = shopping.process_shopping_subtasks(tf, all_tasks)
         work_label.cleanup_work_label(tf, all_tasks)
         duration_msgs = duration_labels.add_duration_labels(tf, all_tasks)
         inbox_cleaning_msg = inbox_cleanup.move_tasks_out_of_inbox(tf, all_tasks)
