@@ -41,12 +41,13 @@ jobs:
           import datetime
           import os
           import traceback
-          from main import MainDiego
+          from todoist_automation.api.todoist_client import TodoistFunctions
+          from todoist_automation.automations import daily
 
           print(f"[TodoistDaily] start UTC={datetime.datetime.utcnow().isoformat()}Z")
           try:
-              main = MainDiego(todoist_api_token=os.getenv('TODOIST_API_TOKEN'))
-              result = main.TodoistDaily(address=os.getenv('DIEGO_EMAIL'))
+              tf = TodoistFunctions(api_token=os.getenv('TODOIST_API_TOKEN'))
+              result = daily.run_daily(tf, address=os.getenv('DIEGO_EMAIL'))
               print(f"[TodoistDaily] result: {result}")
               print("[TodoistDaily] completed")
           except Exception as exc:
