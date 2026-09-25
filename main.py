@@ -66,7 +66,7 @@ class MainDiego:
                 except Exception:
                     return None
 
-            # Feature: move overdue Compra subtasks to Compra date while keeping each original recurrence rule.
+            # Move overdue Compra subtasks to the Compra date while preserving each recurrence rule.
             compra_task_id = '66rjJfXC7599vCc4'
             compra_task = next((task for task in all_tasks if task.id == compra_task_id), None)
             if compra_task is None:
@@ -100,7 +100,7 @@ class MainDiego:
                                 original_is_recurring = getattr(subtask.due, 'is_recurring', False)
                                 try:
                                     if original_is_recurring and original_due_string:
-                                        # Keep the original recurrence text and only shift the current occurrence date.
+                                        # Keep the original recurrence text and shift only the current occurrence date.
                                         self.tf.update_task(
                                             task_id=subtask.id,
                                             due_string=original_due_string,
@@ -148,12 +148,12 @@ class MainDiego:
                             similars.append(message)
                 return similars 
             
-            # Remove Work label
+            # Remove the Work label
             for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '6hHqvV2wh2Jf2vpC', all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     labels=[label for label in task.labels if label != 'Work'])
                 
-            # Remove Work label and move from the inbox
+            # Remove the Work label and move the task out of the inbox
             for task in list(filter(lambda task: 'Work' in task.labels and task.project_id == '6Crcvw8HFvwxMCqc', all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     labels=[label for label in task.labels if label != 'Work'],
@@ -169,7 +169,7 @@ class MainDiego:
                 message = f'{task.content}'
                 duration_msgs.append("- "+message.split(' updated correctly to ')[-1])
             
-            # Move out from the inbox
+            # Move tasks out of the inbox
             for task in list(filter(lambda task: task.project_id == '6Crcvw8HFvwxMCqc' and 'Work' not in task.labels, all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     content=task.content[0].upper()+task.content[1:],
@@ -180,7 +180,7 @@ class MainDiego:
                                   project_id='6JqmRWG4gxwvmgRg')
                 inbox_cleaning_msg.append('- '+message.split(' updated correctly to ')[-1])
             
-            # Capitalize title
+            # Capitalize titles
             for task in list(filter(lambda task: task.content[0].upper() != task.content[0], all_tasks)):
                 self.tf.update_task(task_id=task.id,
                                     content=task.content[0].upper()+task.content[1:])
@@ -202,7 +202,7 @@ class MainDiego:
                 except:
                     birthday_msgs.append(f"Task '{task.content}' probably does not have a proper due_string")
             
-            # Suitcase and expenses tasks
+            # Suitcase and expense tasks
             for task in list(filter(lambda task: 'Vacations' in task.labels and task.project_id == '6Crcvw8HQm7HhcFv', all_tasks)):
                 title = task.content
                 if not any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks)):
@@ -210,14 +210,14 @@ class MainDiego:
                     if vacation_day > today + timedelta(days=3):
                         new_suitcase_task = self.tf.add_task(content=f'Preparar maleta {title}',
                                           due_string=f"3 dias antes de {task.due.date.strftime('%Y-%m-%d')}",
-                                          priority=fun.priority_inversal(2), #orange
+                                          priority=fun.priority_inversal(2), # orange
                                           labels=['Long', 'Home'],
                                           project_id='6Crcvw8HP8h84jJV')
                         message = f'Task "Preparar maleta {title}" created succesfully'
                         suitcase_msgs.append("- "+message)
 
                         # Copy the packing checklist from the reference "Maleta" task comments,
-                        # but only if the new task doesn't already have one (avoids duplicates on reruns).
+                        # but only if the new task does not already have one.
                         try:
                             existing_comments = self.tf.get_comments(task_id=new_suitcase_task.id)
                             if existing_comments:
@@ -236,7 +236,7 @@ class MainDiego:
                     if 'fin' in task.due.string or 'ending' in task.due.string:        
                         self.tf.add_task(content=f'Apuntar gastos {title}',
                                           due_string=f"1 dia despues de {task.due.date.strftime('%Y-%m-%d')}",
-                                          priority=fun.priority_inversal(3), #blue
+                                          priority=fun.priority_inversal(3), # blue
                                           labels=['Phone', 'PC', 'Long'],
                                           project_id='6Crcvw8HP8h84jJV')
                         message = f'Task "Apuntar gastos {title}" created succesfully'
@@ -297,7 +297,7 @@ class MainDiego:
                     elif due.weekday() in [0, 1, 2, 3] and priority != fun.priority_inversal(3):
                         self.tf.update_task(task_id=task.id, priority=fun.priority_inversal(3))
                 
-            # Similar tasks       
+            # Similar tasks
             similars = similar_tasks(project_ids=['6Crcvw8HQ7pGFH8v',
                                                  '6Crcvw8HPWrHFWMx',
                                                  '6g2gVxRGGVQJx76J',
@@ -344,7 +344,7 @@ class MainDiego:
                                 fantasy_msg.append(message) 
                                 self.tf.update_task(task_id=fantasy_task_id, due_string="Tuesday 7 pm")
                                 break
-                        except TypeError: # due date is None, not matchdate released yet
+                        except TypeError: # Due date is None; match date has not been released yet.
                             pass
                 
             # Permanent tasks
@@ -384,7 +384,7 @@ class MainDiego:
             runtime = f'Runtime: {round(time.time()-start_time,3)} seconds'
             body += "\n" + runtime
             
-            # Mail
+            # Email
             try:
                 fun.send_email(subject="Daily Todoist", body=body, to=address)
                 return f'{body}\n\nAnd mail sent correctly'

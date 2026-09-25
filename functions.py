@@ -17,7 +17,7 @@ load_dotenv()
 
 
 class TodoistException(Exception):
-    """Excepción personalizada para errores de Todoist con contexto detallado."""
+    """Custom exception for Todoist errors with detailed context."""
     def __init__(self, message: str, context: dict = None):
         super().__init__(message)
         self.message = message
@@ -27,7 +27,7 @@ class TodoistException(Exception):
 
 
 class TodoistFunctions:
-    """Clase para interactuar con la API de Todoist."""
+    """Class for interacting with the Todoist API."""
 
     def __init__(self, api_token: str):
         self.api_token = api_token
@@ -99,7 +99,7 @@ class TodoistFunctions:
         ) from last_exception
 
     def _handle_exception(self, e: Exception) -> None:
-        """Maneja las excepciones de forma consistente lanzando TodoistException."""
+        """Handle exceptions consistently by raising TodoistException."""
         if isinstance(e, TodoistException):
             raise e
 
@@ -137,17 +137,17 @@ class TodoistFunctions:
 
     def get_projects(self, to_dict: bool = True):
         """
-        Obtiene todos los proyectos.
+        Get all projects.
         
         Args:
-            to_dict: Si True, devuelve diccionarios {id: name} y {name: id}.
-                     Si False, devuelve lista de objetos Project.
+            to_dict: If True, return {id: name} and {name: id} dictionaries.
+                     If False, return a list of Project objects.
         
         Returns:
-            Tuple[dict, dict] o List[Project] según to_dict.
+            Tuple[dict, dict] or List[Project], depending on to_dict.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             def _fetch_projects():
@@ -169,18 +169,18 @@ class TodoistFunctions:
 
     def get_sections(self, to_dict: bool = True, project_id: str = None):
         """
-        Obtiene todas las secciones, opcionalmente filtradas por proyecto.
+        Get all sections, optionally filtered by project.
         
         Args:
-            to_dict: Si True, devuelve diccionarios {id: name} y {name: id}.
-                     Si False, devuelve lista de objetos Section.
-            project_id: ID del proyecto para filtrar secciones (opcional).
+            to_dict: If True, return {id: name} and {name: id} dictionaries.
+                     If False, return a list of Section objects.
+            project_id: Optional project ID used to filter sections.
         
         Returns:
-            Tuple[dict, dict] o List[Section] según to_dict.
+            Tuple[dict, dict] or List[Section], depending on to_dict.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             def _fetch_sections():
@@ -205,13 +205,13 @@ class TodoistFunctions:
 
     def get_tasks(self):
         """
-        Obtiene todas las tareas activas de proyectos activos.
+        Get all active tasks from active projects.
         
         Returns:
-            List[Task]: Lista de tareas activas.
+            List[Task]: A list of active tasks.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             active_projects_ids, _ = self.get_projects()
@@ -232,16 +232,16 @@ class TodoistFunctions:
 
     def get_task(self, task_id: str):
         """
-        Obtiene una tarea específica por ID.
+        Get a specific task by ID.
         
         Args:
-            task_id: ID de la tarea.
+            task_id: Task ID.
         
         Returns:
-            Task: Objeto de la tarea.
+            Task: The task object.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             return self._execute_with_retry(
@@ -274,34 +274,34 @@ class TodoistFunctions:
         deadline_lang: str = None,
     ):
         """
-        Crea una nueva tarea.
+        Create a new task.
         
         Args:
-            content: Contenido/título de la tarea.
-            description: Descripción de la tarea.
-            project_id: ID del proyecto destino.
-            section_id: ID de la sección destino.
-            parent_id: ID de la tarea padre (para subtareas).
-            labels: Lista de etiquetas.
-            priority: Prioridad (1-4, donde 4 es la más alta).
-            due_string: Fecha de vencimiento en texto natural.
-            due_lang: Idioma para due_string.
-            due_date: Fecha de vencimiento (YYYY-MM-DD).
-            due_datetime: Fecha y hora de vencimiento (RFC3339).
-            assignee_id: ID del usuario asignado.
-            order: Orden de la tarea.
-            auto_reminder: Agregar recordatorio automático.
-            auto_parse_labels: Parsear etiquetas automáticamente.
-            duration: Duración estimada.
-            duration_unit: Unidad de duración ('minute' o 'day').
-            deadline_date: Fecha límite.
-            deadline_lang: Idioma para deadline.
+            content: Task content/title.
+            description: Task description.
+            project_id: Destination project ID.
+            section_id: Destination section ID.
+            parent_id: Parent task ID for subtasks.
+            labels: List of labels.
+            priority: Priority (1-4, where 4 is the highest).
+            due_string: Natural-language due date.
+            due_lang: Language for due_string.
+            due_date: Due date (YYYY-MM-DD).
+            due_datetime: Due date and time (RFC3339).
+            assignee_id: Assigned user ID.
+            order: Task order.
+            auto_reminder: Add an automatic reminder.
+            auto_parse_labels: Parse labels automatically.
+            duration: Estimated duration.
+            duration_unit: Duration unit ('minute' or 'day').
+            deadline_date: Deadline date.
+            deadline_lang: Language for deadline.
         
         Returns:
             Task: La tarea creada.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             return self.api.add_task(
@@ -348,31 +348,31 @@ class TodoistFunctions:
         deadline_lang: str = None,
     ) -> bool:
         """
-        Actualiza una tarea existente.
+        Update an existing task.
         
         Args:
             task_id: ID de la tarea a actualizar.
-            content: Nuevo contenido/título.
-            description: Nueva descripción.
-            labels: Nuevas etiquetas.
-            priority: Nueva prioridad.
-            due_string: Nueva fecha de vencimiento en texto.
-            due_lang: Idioma para due_string.
-            due_date: Nueva fecha de vencimiento.
-            due_datetime: Nueva fecha y hora de vencimiento.
-            assignee_id: Nuevo usuario asignado.
-            day_order: Nuevo orden del día.
-            duration: Nueva duración.
-            collapsed: Estado de colapso.
-            duration_unit: Nueva unidad de duración.
-            deadline_date: Nueva fecha límite.
-            deadline_lang: Idioma para deadline.
+            content: New content/title.
+            description: New description.
+            labels: New labels.
+            priority: New priority.
+            due_string: New natural-language due date.
+            due_lang: Language for due_string.
+            due_date: New due date.
+            due_datetime: New due date and time.
+            assignee_id: New assigned user ID.
+            day_order: New day order.
+            duration: New duration.
+            collapsed: Collapsed state.
+            duration_unit: New duration unit.
+            deadline_date: New deadline date.
+            deadline_lang: Language for deadline.
         
         Returns:
-            bool: True si la actualización fue exitosa.
+            bool: True if the update succeeds.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         payload = {
             "task_id": task_id,
@@ -430,22 +430,22 @@ class TodoistFunctions:
         section_id: str = None,
     ) -> bool:
         """
-        Mueve una tarea a otro proyecto, sección o como subtarea.
+        Move a task to another project, section, or parent task.
         
         Args:
-            task_id: ID de la tarea a mover.
-            parent_id: ID de la tarea padre (para convertir en subtarea).
-            project_id: ID del proyecto destino.
-            section_id: ID de la sección destino.
+            task_id: ID of the task to move.
+            parent_id: Parent task ID, converting the task into a subtask.
+            project_id: Destination project ID.
+            section_id: Destination section ID.
         
         Returns:
-            bool: True si el movimiento fue exitoso.
+            bool: True if the move succeeds.
         
         Raises:
-            TodoistException: Si hay error o no se proporciona destino.
+            TodoistException: If the operation fails or no destination is provided.
         """
         if not any([parent_id, project_id, section_id]):
-            raise TodoistException("Debe proporcionar project_id, parent_id o section_id.")
+            raise TodoistException("Provide project_id, parent_id, or section_id.")
 
         try:
             self.api.move_task(
@@ -460,16 +460,16 @@ class TodoistFunctions:
 
     def uncomplete_task(self, task_id: str) -> bool:
         """
-        Marca una tarea como no completada.
+        Mark a task as incomplete.
         
         Args:
-            task_id: ID de la tarea.
+            task_id: Task ID.
         
         Returns:
-            bool: True si la operación fue exitosa.
+            bool: True if the operation succeeds.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             self.api.uncomplete_task(task_id=task_id)
@@ -484,18 +484,18 @@ class TodoistFunctions:
         limit: int = 50,
     ):
         """
-        Obtiene tareas completadas en un rango de fechas.
+        Get completed tasks within a date range.
         
         Args:
-            since: Fecha de inicio (RFC3339).
-            until: Fecha de fin (RFC3339).
-            limit: Número máximo de tareas a obtener.
+            since: Start date (RFC3339).
+            until: End date (RFC3339).
+            limit: Maximum number of tasks to retrieve.
         
         Returns:
-            List[Task]: Lista de tareas completadas.
+            List[Task]: A list of completed tasks.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             def _fetch_completed_tasks():
@@ -515,17 +515,17 @@ class TodoistFunctions:
 
     def get_comments(self, task_id: str = None, project_id: str = None):
         """
-        Obtiene los comentarios de una tarea o proyecto.
+        Get comments from a task or project.
 
         Args:
-            task_id: ID de la tarea de la que obtener comentarios.
-            project_id: ID del proyecto del que obtener comentarios.
+            task_id: ID of the task whose comments should be retrieved.
+            project_id: ID of the project whose comments should be retrieved.
 
         Returns:
-            List[Comment]: Lista de comentarios.
+            List[Comment]: A list of comments.
 
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             def _fetch_comments():
@@ -550,18 +550,18 @@ class TodoistFunctions:
 
     def add_comment(self, content: str, task_id: str = None, project_id: str = None):
         """
-        Agrega un comentario a una tarea o proyecto.
+        Add a comment to a task or project.
 
         Args:
-            content: Contenido del comentario.
-            task_id: ID de la tarea a comentar.
-            project_id: ID del proyecto a comentar.
+            content: Comment content.
+            task_id: ID of the task to comment on.
+            project_id: ID of the project to comment on.
 
         Returns:
             Comment: El comentario creado.
 
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             return self._execute_with_retry(
@@ -573,17 +573,17 @@ class TodoistFunctions:
 
     def add_reminder(self, task_id: str, minute_offset: int) -> bool:
         """
-        Agrega un recordatorio relativo a una tarea.
+        Add a relative reminder to a task.
         
         Args:
-            task_id: ID de la tarea.
-            minute_offset: Minutos antes del vencimiento para el recordatorio.
+            task_id: Task ID.
+            minute_offset: Minutes before the due date for the reminder.
         
         Returns:
-            bool: True si el recordatorio fue agregado.
+            bool: True if the reminder was added.
         
         Raises:
-            TodoistException: Si hay error en la petición.
+            TodoistException: If the request fails.
         """
         try:
             self.api.add_reminder(
@@ -652,104 +652,104 @@ def send_email(subject, body, to):
 
 def build_exception_msg(e: Exception) -> str:
     """
-    Construye un mensaje detallado de excepción con traceback completo.
+    Build a detailed exception message with the complete traceback.
     
     Args:
-        e: La excepción a procesar.
+        e: The exception to process.
     
     Returns:
-        str: Mensaje detallado formateado para correo.
+        str: Detailed message formatted for email.
     """
     msg_parts = []
     msg_parts.append("=" * 80)
-    msg_parts.append("ERROR DETALLADO")
+    msg_parts.append("DETAILED ERROR")
     msg_parts.append("=" * 80)
     
-    # Información básica
-    msg_parts.append(f"\nTipo de error: {type(e).__name__}")
-    msg_parts.append(f"Hora: {datetime.now().isoformat()}")
-    msg_parts.append(f"Mensaje: {str(e)}")
+    # Basic information
+    msg_parts.append(f"\nError type: {type(e).__name__}")
+    msg_parts.append(f"Time: {datetime.now().isoformat()}")
+    msg_parts.append(f"Message: {str(e)}")
     
-    # Información adicional si es TodoistException
+    # Additional information for TodoistException
     if isinstance(e, TodoistException):
         msg_parts.append(f"\n" + "=" * 80)
-        msg_parts.append("INFORMACIÓN DEL SERVICIO")
+        msg_parts.append("SERVICE INFORMATION")
         msg_parts.append("=" * 80)
         for key, value in e.context.items():
             if key == 'service':
-                msg_parts.append(f"\n🔴 SERVICIO QUE FALLÓ: {value.upper()}")
+                msg_parts.append(f"\n🔴 FAILED SERVICE: {value.upper()}")
             else:
                 msg_parts.append(f"  - {key}: {value}")
     
-    # Traceback completo
+    # Complete traceback
     msg_parts.append("\n" + "=" * 80)
-    msg_parts.append("TRACEBACK COMPLETO")
+    msg_parts.append("COMPLETE TRACEBACK")
     msg_parts.append("=" * 80)
     
     tb_str = traceback.format_exc()
     if tb_str == "NoneType: None\n":
-        # Si no hay traceback, construir uno desde la excepción
+        # If there is no traceback, build one from the exception
         tb_str = f"  Exception: {e}\n"
     msg_parts.append(tb_str)
     
-    # Información de la causa raíz
+    # Root-cause information
     if e.__cause__:
         msg_parts.append("\n" + "=" * 80)
-        msg_parts.append("CAUSA RAÍZ")
+        msg_parts.append("ROOT CAUSE")
         msg_parts.append("=" * 80)
-        msg_parts.append(f"Tipo: {type(e.__cause__).__name__}")
-        msg_parts.append(f"Mensaje: {str(e.__cause__)}")
+        msg_parts.append(f"Type: {type(e.__cause__).__name__}")
+        msg_parts.append(f"Message: {str(e.__cause__)}")
     
     return "\n".join(msg_parts)
 
 def format_error_for_email(operation: str, e: Exception, additional_info: dict = None) -> str:
     """
-    Formatea un error completo para enviar por correo con contexto de operación.
+    Format a complete error for email with operation context.
     
     Args:
-        operation: Nombre de la operación que falló (ej: "Daily Task Execution").
-        e: La excepción capturada.
-        additional_info: Diccionario con información adicional (ej: task_id, project_name).
+        operation: Name of the failed operation (e.g. "Daily Task Execution").
+        e: The captured exception.
+        additional_info: Dictionary with additional information (e.g. task_id, project_name).
     
     Returns:
-        str: Mensaje formateado listo para enviar por correo.
+        str: Formatted message ready to send by email.
     """
     msg_parts = []
     
-    # Encabezado con identificación del servicio
-    service = "DESCONOCIDO"
+    # Header with service identification
+    service = "UNKNOWN"
     if isinstance(e, TodoistException) and 'service' in e.context:
         service = e.context['service']
     
     msg_parts.append("\n" + "🚨 " * 20)
-    msg_parts.append(f"SERVICIO AFECTADO: {service}")
+    msg_parts.append(f"AFFECTED SERVICE: {service}")
     msg_parts.append("🚨 " * 20)
     
     msg_parts.append("\n" + "=" * 80)
-    msg_parts.append(f"OPERACIÓN FALLIDA: {operation}")
+    msg_parts.append(f"FAILED OPERATION: {operation}")
     msg_parts.append("=" * 80)
-    msg_parts.append(f"\nFecha y hora: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    msg_parts.append(f"\nDate and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
-    # Información adicional si está disponible
+    # Additional information, if available
     if additional_info:
-        msg_parts.append("\nDetalles de la operación:")
+        msg_parts.append("\nOperation details:")
         for key, value in additional_info.items():
             msg_parts.append(f"  - {key}: {value}")
     
-    # Detalles del error
+    # Error details
     msg_parts.append("\n" + build_exception_msg(e))
     
-    # Recomendaciones según el servicio
+    # Recommendations by service
     msg_parts.append("\n" + "=" * 80)
-    msg_parts.append("RECOMENDACIONES")
+    msg_parts.append("RECOMMENDATIONS")
     msg_parts.append("=" * 80)
     if service == "Todoist API":
-        msg_parts.append("• El error proviene de la API de Todoist")
-        msg_parts.append("• Verificar status: https://todoist.com/")
-        msg_parts.append("• Revisar limites de rate limit de API")
-        msg_parts.append("• El codigo reintentara automaticamente en proximas ejecuciones")
+        msg_parts.append("• The error comes from the Todoist API")
+        msg_parts.append("• Check status: https://todoist.com/")
+        msg_parts.append("• Review API rate limits")
+        msg_parts.append("• The code will retry automatically on future executions")
     else:
-        msg_parts.append("• Revisar logs de ejecucion")
-        msg_parts.append("• Verificar conexion a internet")
+        msg_parts.append("• Review execution logs")
+        msg_parts.append("• Check the internet connection")
     
     return "\n".join(msg_parts)

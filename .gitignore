@@ -82,6 +82,8 @@ ipython_config.py
 
 # Virtual environments (env and venv folders)
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
