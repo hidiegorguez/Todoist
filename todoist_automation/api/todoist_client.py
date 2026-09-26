@@ -568,7 +568,10 @@ class TodoistFunctions:
     def add_reminder(self, task_id: str, minute_offset: int) -> bool:
         """
         Add a relative reminder to a task.
-        
+
+        The Todoist Python SDK does not expose a reminders method, so this calls
+        the REST endpoint (POST /api/v1/reminders) directly.
+
         Args:
             task_id: Task ID.
             minute_offset: Minutes before the due date for the reminder.
@@ -580,11 +583,67 @@ class TodoistFunctions:
             TodoistException: If the request fails.
         """
         try:
-            self.api.add_reminder(
-                item_id=task_id,
-                minute_offset=minute_offset,
-                type="relative",
-            )
+            def _create_reminder():
+                response = requests.post(
+                    "https://api.todoist.com/api/v1/reminders",
+                    headers={"Authorization": f"Bearer {self.api_token}"},
+                    json={
+                        "task_id": task_id,
+                        "reminder_type": "relative",
+                        "minute_offset": minute_offset,
+                    },
+                    timeout=15,
+                )
+                response.raise_for_status()
+                return response.json()
+
+            self._execute_with_retry("add_reminder", _create_reminder)
             return True
+        except Exception as e:
+            self._handle_exception(e)
+
+    def get_reminders(self, task_id: str = None) -> list:
+        """
+        Get active reminders, optionally filtered by task.
+
+        Uses the REST endpoint (GET /api/v1/reminders) directly since the SDK
+        does not expose reminders.
+
+        Args:
+            task_id: Optional task ID to filter reminders for a single task.
+
+        Returns:
+            list: Reminder objects (as dicts).
+
+        Raises:
+            TodoistException: If the request fails.
+        """
+        try:
+            def _fetch_reminders():
+                reminders = []
+                cursor = None
+                while True:
+                    params = {"limit": 200}
+                    if task_id is not None:
+                        params["task_id"] = task_id
+                    if cursor:
+                        params["cursor"] = cursor
+
+                    response = requests.get(
+                        "https://api.todoist.com/api/v1/reminders",
+                        headers={"Authorization": f"Bearer {self.api_token}"},
+                        params=params,
+                        timeout=15,
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    reminders.extend(data.get("results", []))
+
+                    cursor = data.get("next_cursor")
+                    if not cursor:
+                        break
+                return reminders
+
+            return self._execute_with_retry("get_reminders", _fetch_reminders)
         except Exception as e:
             self._handle_exception(e)
