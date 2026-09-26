@@ -13,3 +13,6 @@ spacy==3.7.4
 # Microsoft Authentication Library (MSAL) for handling secure authentication, 
 # typically used for accessing Microsoft services such as Outlook or Teams
 msal==1.31.0
+
+# Fernet encryption for the similar-tasks cache
+cryptography==43.0.3
