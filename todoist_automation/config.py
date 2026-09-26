@@ -58,12 +58,18 @@ FANTASY_MATCHES_PARENT_TASK_ID = "6cFCJHXxwmQR3v9M"
 # --- Permanent tasks ---
 PERMANENT_TASKS_DESTINATION_PROJECT_ID = "6F63g3w6f352G8P4"
 
-# --- Compra (shopping) subtasks ---
+# --- Shopping subtasks ---
 SHOPPING_TASK_ID = "66rjJfXC7599vCc4"
 SHOPPING_REQUIRED_LABELS = ["Permanent", "Compras"]
 
 # --- SuperBet ---
 SUPERBET_TASK_ID = "6WX594CXh843hx76"
+
+# --- Stretching ---
+STRETCHING_TASK_ID = "6785M5hFvc2JXRj4"
+
+# --- Mouth ---
+MOUTH_TASK_ID = "69xJGWQjVXHmRMJx"
 
 # --- Hidden night tasks ---
 NIGHT_TASK_WH_ID = "6X9345CxhcVwWqc7"
