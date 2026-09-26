@@ -26,7 +26,9 @@ RECURRING_TOGGLE_TASKS = [
     (config.COUNTER_TASK_ID, list(range(7)), 'today at 6 am', None, None),
     (config.BREAKFAST_TASK_ID, [0, 3, 4, 5, 6], 'today at 9 am', None, None),
     (config.RAISED_TASK_ID, [1, 2], 'today at 8:30 am', None, None),
-    (config.WATER_TASK_ID, [0, 3, 4, 5, 6], 'today at 11 am', 9 * 60, 'minute'),
+    (config.WATER_TASK_ID, [0, 3, 4, 5, 6], 'today at 11 am', 540, 'minute'),
+    (config.STRETCHING_TASK_ID, [0, 3, 4, 5, 6], 'today at 9 am', 10, 'minute'),
+    (config.MOUTH_TASK_ID, [4], 'today at 3 pm', 10, 'minute'),
 ]
 
 
