@@ -70,9 +70,12 @@ Available variables:
 | `ECLIPSE_EMAIL` | email notifications | SMTP sender account. |
 | `ECLIPSE_APP_PASSWORD` | email notifications | SMTP app password. |
 | `OPEN_WEATHER_API_KEY` | weather automation | OpenWeather API key. |
+| `SIMILAR_TASKS_ENCRYPTION_KEY` | daily execution | Fernet key for encrypting task names in `data/similartasksdiego.csv`. |
 
 The program loads `.env` automatically through `python-dotenv`. You do not
 need to export these variables manually when running from the project root.
+Set the same key as the `SIMILAR_TASKS_ENCRYPTION_KEY` GitHub Actions secret. The
+key must be kept stable so existing cache entries can be decrypted.
 
 ## Run the program
 
