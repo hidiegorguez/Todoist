@@ -36,6 +36,7 @@ jobs:
           DIEGO_EMAIL: ${{ secrets.DIEGO_EMAIL }}
           ECLIPSE_EMAIL: ${{ secrets.ECLIPSE_EMAIL }}
           ECLIPSE_APP_PASSWORD: ${{ secrets.ECLIPSE_APP_PASSWORD }}
+          SIMILAR_TASKS_ENCRYPTION_KEY: ${{ secrets.SIMILAR_TASKS_ENCRYPTION_KEY }}
         run: |
           python - <<'PY'
           import datetime
