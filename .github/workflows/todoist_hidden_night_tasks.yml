@@ -1,8 +1,6 @@
 name: Todoist Hidden Night Tasks
 
 on:
-  schedule:
-    - cron: '53 18 * * *'
   workflow_dispatch:
 
 jobs:
