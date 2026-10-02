@@ -65,6 +65,14 @@ def run_hidden_afternoon_tasks(tf):
                 tf.add_reminder(task_id=config.AFTERNOON_TASK_ID, minute_offset=0)
             else:
                 tf.update_task(task_id=config.AFTERNOON_TASK_ID, due_string='today at 9 pm')
+        if weekday in [0, 3, 4, 5, 6]:
+            task = tf.get_task(config.STRETCHING_TASK_ID)
+            if task.is_completed:
+                tf.uncomplete_task(config.STRETCHING_TASK_ID)
+                tf.update_task(task_id=config.STRETCHING_TASK_ID, due_string='today at 8 pm')
+                tf.add_reminder(task_id=config.STRETCHING_TASK_ID, minute_offset=0)
+            else:
+                tf.update_task(task_id=config.STRETCHING_TASK_ID, due_string='today at 8 pm')
         return f'Execution completed, day {weekday}'
 
     except Exception as e:
