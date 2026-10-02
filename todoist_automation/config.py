@@ -3,6 +3,10 @@
 Keeping these IDs here (instead of scattered as literals across the
 automation modules) makes it possible to know what each one refers to and to
 update them in a single place.
+
+ID naming convention: <DESCRIPTION>_<TYPE>_ID, where TYPE is TASK, PROJECT or
+SECTION (e.g. NIGHT_WH_TASK_ID, INBOX_PROJECT_ID). Lists of IDs use the plural
+suffix <TYPE>_IDS.
 """
 
 import os
@@ -72,12 +76,34 @@ STRETCHING_TASK_ID = "6785M5hFvc2JXRj4"
 MOUTH_TASK_ID = "69xJGWQjVXHmRMJx"
 
 # --- Hidden night tasks ---
-NIGHT_TASK_WH_ID = "6X9345CxhcVwWqc7"
-NIGHT_TASK_HEALTH_ID = "6fH8GhMx2R9HRq5c"
-NIGHT_TASK_APPS_ID = "6fg2gfqGP2gR5Fjc"
+WH_TASK_ID = "6X9345CxhcVwWqc7"
+HEALTH_TASK_ID = "6fH8GhMx2R9HRq5c"
+APPS_TASK_ID = "6fg2gfqGP2gR5Fjc"
 
 # --- Hidden afternoon tasks ---
-AFTERNOON_TASK_ID = "6hWpCqC7FrpPVJQx"
+TRASH_TASK_ID = "6hWpCqC7FrpPVJQx"
+
+# --- Task schedules ---
+# Entries: (task_id, active_weekdays (0=Monday), due_string, duration, duration_unit)
+RECURRING_TOGGLE_TASKS = [
+    (COUNTER_TASK_ID, list(range(7)), 'today at 6 am', None, None),
+    (BREAKFAST_TASK_ID, [0, 1, 3, 5, 6], 'today at 9 am', None, None),
+    (RAISED_TASK_ID, [2, 4], 'today at 8 am', None, None),
+    (WATER_TASK_ID, [0, 1, 3, 5, 6], 'today at 11 am', 540, 'minute'),
+    (STRETCHING_TASK_ID, [5, 6], 'today at 11 am', 10, 'minute')
+]
+
+HIDDEN_NIGHT_TASKS = [
+    (APPS_TASK_ID, [6], 'today at 9 pm', None, None),
+    (WH_TASK_ID, [2, 4], 'today at 9 pm', None, None),
+    (HEALTH_TASK_ID, [0, 3], 'today at 9 pm', None, None),
+]
+
+HIDDEN_AFTERNOON_TASKS = [
+    (TRASH_TASK_ID, [3], 'today at 9 pm', 5, 'minute'),
+    (MOUTH_TASK_ID, [3], 'today at 5 pm', 5, 'minute'),
+    (STRETCHING_TASK_ID, [0, 3, 4, 5, 6], 'today at 8 pm', None, None),
+]
 
 # --- Weather ---
 WEATHER_TASK_ID = "6XCPqCqfmV4g424G"

@@ -21,16 +21,6 @@ from todoist_automation.utils.report import build_daily_report
 
 WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-# (task_id, active_weekdays, due_string, duration, duration_unit)
-RECURRING_TOGGLE_TASKS = [
-    (config.COUNTER_TASK_ID, list(range(7)), 'today at 6 am', None, None),
-    (config.BREAKFAST_TASK_ID, [0, 3, 4, 5, 6], 'today at 9 am', None, None),
-    (config.RAISED_TASK_ID, [1, 2], 'today at 8:30 am', None, None),
-    (config.WATER_TASK_ID, [0, 3, 4, 5, 6], 'today at 11 am', 540, 'minute'),
-    (config.STRETCHING_TASK_ID, [5, 6], 'today at 11 am', 10, 'minute'),
-    (config.MOUTH_TASK_ID, [4], 'today at 3 pm', 10, 'minute'),
-]
-
 
 def run_daily(tf, address):
     try:
@@ -49,7 +39,7 @@ def run_daily(tf, address):
         birthday_msgs = birthdays.apply_birthday_labels(tf, all_tasks)
         suitcase_msgs, expenses_msgs = vacations.process_vacation_tasks(tf, all_tasks, today)
 
-        for task_id, active_weekdays, due_string, duration, duration_unit in RECURRING_TOGGLE_TASKS:
+        for task_id, active_weekdays, due_string, duration, duration_unit in config.RECURRING_TOGGLE_TASKS:
             recurring_toggles.reset_recurring_task(
                 tf, task_id, weekday, active_weekdays, due_string, duration, duration_unit
             )
