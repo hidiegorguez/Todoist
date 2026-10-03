@@ -18,29 +18,29 @@ def process_vacation_tasks(tf, all_tasks, today):
         all_tasks,
     )):
         title = task.content
-        if not any(filter(lambda t: t.content == f'Preparar SUITCASE {title}', all_tasks)):
+        if not any(filter(lambda t: t.content == f'Preparar maleta {title}', all_tasks)):
             vacation_day = datetime.strptime(task.due.date.strftime('%Y-%m-%d'), '%Y-%m-%d')
             if vacation_day > today + timedelta(days=3):
                 new_suitcase_task = tf.add_task(
-                    content=f'Preparar SUITCASE {title}',
+                    content=f'Preparar maleta {title}',
                     due_string=f"3 dias antes de {task.due.date.strftime('%Y-%m-%d')}",
                     priority=priority_inversal(2),  # orange
                     labels=['Long', 'Home'],
                     project_id=config.SUITCASE_EXPENSES_PROJECT_ID,
                 )
-                suitcase_msgs.append(f'- Task "Preparar SUITCASE {title}" created succesfully')
+                suitcase_msgs.append(f'- Task "Preparar maleta {title}" created succesfully')
 
                 # Copy the packing checklist from the reference "SUITCASE" task comments,
                 # but only if the new task does not already have one.
                 try:
                     existing_comments = tf.get_comments(task_id=new_suitcase_task.id)
                     if existing_comments:
-                        suitcase_msgs.append(f'- "Preparar SUITCASE {title}" already has a comment; skipped copy')
+                        suitcase_msgs.append(f'- "Preparar maleta {title}" already has a comment; skipped copy')
                     else:
                         SUITCASE_comments = tf.get_comments(task_id=config.SUITCASE_REFERENCE_TASK_ID)
                         if SUITCASE_comments:
                             tf.add_comment(content=SUITCASE_comments[0].content, task_id=new_suitcase_task.id)
-                            suitcase_msgs.append(f'- Packing checklist copied to "Preparar SUITCASE {title}"')
+                            suitcase_msgs.append(f'- Packing checklist copied to "Preparar maleta {title}"')
                         else:
                             suitcase_msgs.append('- SUITCASE task has no comments to copy')
                 except Exception as e:
