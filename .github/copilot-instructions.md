@@ -1,4 +1,4 @@
-# AGENTS.md
+# Copilot Instructions
 
 ## Scope
 

@@ -9,6 +9,7 @@ from todoist_automation.daily_tasks import (
     duration_labels,
     fantasy,
     inbox_cleanup,
+    ironing,
     permanent_tasks,
     recurring_toggles,
     shopping,
@@ -44,6 +45,7 @@ def run_daily(tf, address):
                 tf, task_id, weekday, active_weekdays, due_string, duration, duration_unit
             )
 
+        ironing_msgs = ironing.schedule_ironing_after_laundry(tf, today)
         weekly_deadlines_msgs = weekly_deadlines.sync_weekly_deadlines(tf, all_tasks)
         similar_msgs = similar_tasks.find_new_similar_tasks(all_tasks, weekday, umbral=0.7)
         fantasy_msg = fantasy.manage_fantasy_task(tf, all_tasks, today, weekday)
@@ -56,6 +58,7 @@ def run_daily(tf, address):
             'Tasks to add birthday labels:': birthday_msgs,
             'New suitcase tasks:': suitcase_msgs,
             'New expenses tasks': expenses_msgs,
+            'Ironing scheduled after laundry:': ironing_msgs,
             'Weekly deadlines updated:': weekly_deadlines_msgs,
             'Next tasks are similar:': similar_msgs,
             'Shopping subtasks rescheduled to Compra date:': shopping_subtasks_msgs,
