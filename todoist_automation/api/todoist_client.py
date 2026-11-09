@@ -647,3 +647,41 @@ class TodoistFunctions:
             return self._execute_with_retry("get_reminders", _fetch_reminders)
         except Exception as e:
             self._handle_exception(e)
+
+    def get_last_completion(self, task_id: str):
+        """
+        Get the last time a task was completed, including recurring tasks.
+
+        Recurring tasks stay active after each completion, so their
+        ``completed_at`` is always None. The activity log (GET /api/v1/activities)
+        records every completion; the SDK does not expose it.
+
+        Args:
+            task_id: Task ID.
+
+        Returns:
+            str | None: ISO 8601 UTC datetime of the last completion, or None.
+
+        Raises:
+            TodoistException: If the request fails.
+        """
+        try:
+            def _fetch_last_completion():
+                response = requests.get(
+                    "https://api.todoist.com/api/v1/activities",
+                    headers={"Authorization": f"Bearer {self.api_token}"},
+                    params={
+                        "object_type": "item",
+                        "object_id": task_id,
+                        "event_type": "completed",
+                        "limit": 1,
+                    },
+                    timeout=15,
+                )
+                response.raise_for_status()
+                results = response.json().get("results", [])
+                return results[0]["event_date"] if results else None
+
+            return self._execute_with_retry(f"get_last_completion({task_id})", _fetch_last_completion)
+        except Exception as e:
+            self._handle_exception(e)
