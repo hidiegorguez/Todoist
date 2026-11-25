@@ -46,9 +46,10 @@ WEEKLY_PRIORITY_EXEMPT_PROJECT_ID = "6VW5PFC4hgwP8RVP"
 
 # --- Similar tasks detection ---
 SIMILAR_TASKS_EXCLUDED_PROJECT_IDS = [
+    "6QX8C34Q68CWFrh7",
+    "6hHqvV2wh2Jf2vpC"
     "6Crcvw8HQ7pGFH8v",
     "6Crcvw8HPWrHFWMx",
-    "6g2gVxRGGVQJx76J",
     "6FhQxfCg5jxP4XpP",
     "6V72655fCQ3gChqh",
 ]
